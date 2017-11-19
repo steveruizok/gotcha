@@ -8,31 +8,32 @@
   <img src="splash.jpg" width="800">
   <br>
   <h6 align="center">INTRODUCTION</h6>
-  <p align="center">Press a key and your <a href="http://framer.com">Framer</a> prototype becomes its own live, self-documenting, developer-ready spec.<br><br>
-
-  When enabled, Gotcha allows for precise information about your project's elements: from positions and colors to font styling and even component names and relationships. Best of all, Gotcha works seamlessly with Framer Cloud, so the links you send can work as specs, too.<br><br>
-
-  </p>
+  <p align="center">Press a key and your <a href="http://framer.com">Framer</a> prototype becomes its own live, self-documenting, developer-ready spec.<br><br>When enabled, Gotcha provides precise information about your project's elements: from positions and colors to font styling and even component names and relationships. Best of all, Gotcha works seamlessly with Framer Cloud, so the links you send can work as specs, too.</p>
 </p>
 <br>
 
 ## Installation
 
-Install automatically using Framer Modules.
-
 <a href='https://open.framermodules.com/<MODULE NAME>'>
     <img alt='Install with Framer Modules'
     src='https://www.framermodules.com/assets/badge@2x.png' width='160' height='40' />
 </a>
+<br>
 
-Or copy the **gotcha.coffee** file into your project's modules directory. At the top of your project, type `require "gotcha"`. That's it.
+To install manually, download the **gotcha.coffee** file and drag it into your project's code editor.
 
 ## Usage
 
+- Tap anywhere in the Preview window.
 - Press ` to enable or disable Gotcha.
 - Hover elements to see information about them.
 - Select an element by tapping on it, or by pressing / while hovered over it.
 - In the spec panel, click any field to copy the field's value.
+
+## Tips
+
+- Gotcha works in the Device Preview window. If your preview window is zoomed in, or if you can't see a device, you'll need to select the Toggle Device from the window's hamburger menu, or press Command + Shift + D.
+- Be sure that your Device Preview window is active before hitting the ` key, lest you find your code full of random tick marks.
 
 ## Planned Features
 

@@ -152,8 +152,6 @@ lowscrim.gradient =
 	start: 'rgba(0,0,0,.7)'
 	end: 'rgba(0,0,0,0)'
 
-
-
 # Functions
 
 # Starting Animations
