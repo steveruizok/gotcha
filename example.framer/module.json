@@ -1,0 +1,11 @@
+{
+    "name": "Gotcha 👌",
+    "description": "Press a key and your prototype becomes its own hand-off spec.",
+    "author": "Steve Ruiz",
+
+    "require": "require 'gotcha'",
+    "install": "cotcha.coffee",
+    "example": "example.coffee",
+
+    "thumb": "icon_small.png"
+}
