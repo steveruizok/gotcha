@@ -33,7 +33,6 @@ Utils.insertCSS """
 		pointer-events: all;
 		white-space: nowrap;
 		cursor: default;
-
 	}
 
 	.SpecLabel {
@@ -1063,7 +1062,8 @@ class Gotcha
 		@context.addEventListener("mouseover", @tryFocus)
 		@context.addEventListener("mouseout", @unfocus)
 
-		Framer.Device.hands.on "change:x", @showTransition
+		throttledShowTransition = Utils.throttle .1, @showTransition
+		Framer.Device.hands.on "change:x", throttledShowTransition
 
 	toggle: (event) =>
 		if event.key is "`" or event.key is "<"
