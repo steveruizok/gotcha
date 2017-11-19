@@ -9,6 +9,7 @@
   <br>
   <h6 align="center">INTRODUCTION</h6>
   <p align="center">Press a key and your <a href="http://framer.com">Framer</a> prototype becomes its own live, self-documenting, developer-ready spec.<br><br>When enabled, Gotcha provides precise information about your project's elements: from positions and colors to font styling and even component names and relationships. Best of all, Gotcha works seamlessly with Framer Cloud, so the links you send can work as specs, too.</p>
+  <a href="https://framer.cloud/OPNdS">Check out the demo.</a>
 </p>
 <br>
 
