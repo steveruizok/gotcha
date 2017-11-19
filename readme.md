@@ -5,11 +5,11 @@
 </h1>
 <br>
 <p align="center">  
-	<img src="splash.jpg" width="800">
+	<a href="href="https://framer.cloud/OPNdS"><img src="splash.jpg" width="800"></a>
 	<br>
 	<h6 align="center">INTRODUCTION</h6>
-	<p align="center" style="width: 75%">
-	  	Press a key and your <a href="http://framer.com">Framer</a> prototype becomes its own live, self-documenting, developer-ready spec.<br><br>When enabled, Gotcha provides precise information about your project's elements: from positions and colors to font styling and even component names and relationships. Best of all, Gotcha works seamlessly with Framer Cloud, so the links you send can work as specs, too.<br><br><a href="https://framer.cloud/OPNdS">Check out the demo.</a>
+	<p align="center" style="width: 75%;">
+	  	Press a key and your <a href="http://framer.com">Framer</a> prototype becomes its own live, self-documenting, developer-ready spec.<br><br>When enabled, Gotcha provides precise information about your project's elements: from positions and colors to font styling and even component names and relationships. Best of all, Gotcha works seamlessly with Framer Cloud, so the links you send can work as specs, too.<br><br><a href="https://framer.cloud/OPNdS"><b>Check out the demo.</b></a>
 	</p>
 </p>
 <br>
