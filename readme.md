@@ -16,10 +16,11 @@
 
 ## Installation
 
-<a href='https://open.framermodules.com/<MODULE NAME>'>
+<a href='https://open.framermodules.com/Gotcha'>
     <img alt='Install with Framer Modules'
     src='https://www.framermodules.com/assets/badge@2x.png' width='160' height='40' />
 </a>
+<br>
 <br>
 
 To install manually, download the **gotcha.coffee** file and drag it into your project's code editor.
