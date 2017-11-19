@@ -1,116 +1,253 @@
 # @steveruizok
 require "gotcha"
 
-
 # Press ` to enable mode; press ` again to disable it.
 
+Screen.backgroundColor = '#000'
 
-Screen.backgroundColor= '#FFF'
-layer = new Layer
-	height: 100
-	width: 64, y: 328, backgroundColor: "rgba(131,72,23,0.5)", x: 24
-
-layer = new Layer
-	height: 100
-	width: 100, y: 258, x: 257
-	shadowX: 1
-	shadowY: 1
-	shadowColor: '#000'
-
-layer = new Layer
-	height: 100
-	width: 100, y: 38, x: 24
-
-class SpecialButton extends Layer
+class Bullet extends Layer
 	constructor: (options = {}) ->
 		
 		_.defaults options,
-			height: 64, width: 320
-			borderRadius: 4
-			backgroundColor: 'rgba(137, 221, 255, 1.000)'
-			borderColor: 'rgba(0, 160, 226, 1.000)'
-			shadowY: 2
-			shadowColor: '#aaa'
-			shadowBlur: 4
-
-		super options	
+			height: 12
+			width: 12
+			borderRadius: 16
+			backgroundColor: '#FFF'
+		
+		super options
 		
 		@textLayer = new TextLayer
 			parent: @
-			point: Align.center
-			text: 'Click Here Now!'
+			x: @width + 16
+			y: Align.center
+			fontFamily: 'Helvetica'
+			text: 'Gotcha'
+			color: '#fff'
+			fontWeight: 600
+			fontSize: 20
+			width: 300
+			lineHeight: 1
+			text: options.text ? 'Bullet point'
+
+class CTA extends Layer
+	constructor: (options = {}) ->
+		
+		_.defaults options,
+			backgroundColor: null
+			borderRadius: 4
+			height: 44
+			width: 128
+			text: 'Click Me'
+			backgroundColor: 'rgba(0, 170, 255, 1.000)'
+		
+		@action = -> null
+		
+		super options
+		
+		@textLayer = new TextLayer
+			parent: @
+			name: 'CTA Label'
+			y: Align.center
+			textAlign: 'center'
+			width: @width
+			fontFamily: 'Helvetica'
+			fontWeight: 600
 			fontSize: 16
-			color: '#000'
+			shadowY: 1
+			shadowBlur: 3
+			shadowColor: 'rgba(0,0,0,.26)'
+			color: 'rgba(255, 255, 255, 1.000)'
+			text: 'Get Started'
+		
+		@onTap => @action()
 
+# furniture
 
+lowscrim.gradient =
+	start: 'rgba(0,0,0,.7)'
+	end: 'rgba(0,0,0,0)'
 
-layer = new Layer
-	height: 100
-	width: 100, y: 82, x: 60
-layer = new Layer
-	height: 100
-	width: 100, y: 82, x: 238
-layer = new Layer
-	height: 100
-	width: 100, y: 38, x: 257
+subtitle.y = title.maxY + 8
+subtitle.width = 320
+subtitle.x = 32
 
+slides.brightness = 0
 
-text = new TextLayer
-	fontSize: 48
-	fontFamily: 'Helvetica'
-	fontWeight: 500
-	color: '#000'
-	x: 10
-	y: 152
-	text: 'Vampires'
+b1 = new Bullet
+	x: 16
+	y: subtitle.maxY + 32
+	text: 'Press ` to enable or disable'
+	opacity: 0
 
-text = new TextLayer
-	fontSize: 32
-	fontFamily: 'Helvetica'
-	fontWeight: 500
-	color: '#000'
-	x: 60
-	y: 212
-	text: 'in the'
-	fontStyle: 'italic'
+b2 = new Bullet
+	x: 16
+	y: b1.maxY + 32
+	text: 'Tap to select or deselect Layers'
+	opacity: 0
+
+b3 = new Bullet
+	x: 16
+	y: b2.maxY + 32
+	text: '... or press / while hovering'
+	opacity: 0
 	
-text = new TextLayer
-	fontSize: 56
-	fontFamily: 'Helvetica'
-	fontWeight: 500
-	x: 24
-	y: 258
-	text: 'Lemon Grove'
-	color: 'orange'
-	shadowY: 3
+b4 = new Bullet
+	x: 16
+	y: b3.maxY + 32
+	text: 'Tap a value on the panel to copy'
+	opacity: 0
+
+b5 = new Bullet
+	x: 16
+	y: b4.maxY + 32
+	text: 'Works in Framer Cloud, too'
+	opacity: 0
 
 
-layer = new Layer
-	name: 'big border'
-	height: 47
-	width: 114
-	x: 124, y: 373
-	borderRadius: 4
-	borderWidth: 10
+getStarted = new CTA
+	name: 'Get Started CTA'
+	x: 16
+	y: subtitle.maxY + 16
+	opacity: 0
+	text: 'Get Started'
+	
+start = ->
+	title.opacity = 0
+	subtitle.opacity = 0
+	
+	title.animate
+		opacity: 1
+		options:
+			time: 2
+			delay: 1.5
+	
+	subtitle.animate
+		opacity: 1
+		options:
+			time: 1.5
+			delay: 2.5
 
-layer = new Layer
-	name: 'square'
-	height: 100
-	width: 100
-	x: 60, y: 439
-	borderRadius: 4
+		
+	slides.animate
+		brightness: 60
+		options:
+			time: 4
+			delay: .4
+			curve: 'ease-out'
+	
+	slides.animate
+		y: -80
+		options:
+			time: 4
+			curve: 'ease-out'
+		
+	getStarted.animate
+		x: 32
+		opacity: 1
+		options:
+			time: .75
+			delay: 4.25
+	
+showSteps1 = ->
+	slides.animate
+		blur: 4
+		brightness: 55
+		options:
+			time: .35
+	
+	getStarted.textLayer.animate
+		opacity: 0
+		options:
+			time: .25
+	
+	getStarted.once Events.AnimationEnd,->
+		getStarted.textLayer.text = 'Next'
+		getStarted.textLayer.animate
+			opacity: 1
+			options:
+				time: .25
+
+	getStarted.animate
+		y: b1.maxY + 32
+		options:
+			time: .35
+	
+		
+	b1.animate
+		opacity: 1
+		x: 32
+		options:
+			time: 1.5
+			delay: .3
+	
+	getStarted.action = showSteps2
+
+showSteps2 = ->
+	
+	getStarted.animate
+		y: b2.maxY + 32
+		options:
+			time: .35
+	
+	b2.animate
+		opacity: 1
+		x: 32
+		options:
+			time: .5
+			delay: .5
+	
+	getStarted.action = showSteps3
+
+showSteps3 = ->
+	
+	getStarted.animate
+		y: b3.maxY + 32
+		options:
+			time: .35
+				
+	b3.animate
+		opacity: 1
+		x: 32
+		options:
+			time: .5
+			delay: .5
+	
+	getStarted.action = showSteps4
+	
+showSteps4 = ->
+	
+	getStarted.animate
+		y: b4.maxY + 32
+		options:
+			time: .35
+				
+	b4.animate
+		opacity: 1
+		x: 32
+		options:
+			time: .5
+			delay: .5
+	
+	getStarted.action = showSteps5
+	
+showSteps5 = ->
+	
+	getStarted.animate
+		y: b5.maxY + 32
+		opacity: 0
+		options:
+			time: .35
+				
+	b5.animate
+		opacity: 1
+		x: 32
+		options:
+			time: .5
+			delay: .5
+	
+	getStarted.action = showSteps4
 
 
-layerB = new Layer
-	height: 60
-	width: 48
-	x: 259, y: 440, scale: 1.05
-	shadowX: 1
-	shadowY: 3
-	shadowBlur: 6
-	shadowColor: 'rgba(0,0,0,.30)'
 
-
-button = new SpecialButton
-	x: Align.center
-	y: Align.bottom(-12)
+getStarted.action = showSteps1
+start()
