@@ -28,7 +28,7 @@ Utils.insertCSS """
 		top: 0;
 		bottom: 0;
 		width: 224px;
-		background-color: rgba(30, 30, 30, 1.000);
+		background-color: rgba(20, 20, 20, 1.000);
 		border-left: 1px solid rgba(45, 45, 45, 1.000);
 		pointer-events: all;
 		white-space: nowrap;
@@ -64,8 +64,20 @@ Utils.insertCSS """
 		right: 36px;
 	}
 
-
+	.framerLayer { 
+		pointer-events: all !important; 
+		} 
+	
+	.IgnorePointerEvents {
+		pointer-events: none !important; 
+	}
 """
+
+for name in ['screenBackground', 'phone', 'screen', 'handsImageLayer', 'screenMask', 'content']
+	layer = Framer.Device[name]
+	return if not layer
+
+	layer._element.classList.add('IgnorePointerEvents')
 
 # -------------------------------------------
 
@@ -139,15 +151,9 @@ class SVGContext
 			for key, value of attributes
 				element.setAttribute(key, value)
 
-		@frameLayer = new Layer
-			size: Screen.size
-			name: '.'
-			visible: false
-
-		@frameElement = @frameLayer._element
+		@frameElement = Framer.Device.screenBackground._element
 
 		@lFrame = @frameElement.getBoundingClientRect()
-
 
 		_.assign @,
 			width: @lFrame.width.toFixed()
@@ -272,58 +278,19 @@ class SVGShape
 	remove: ->
 		@parent.removeShape(@)
 
-###
-	,        .       .
-	|        |       |
-	|    ,-: |-. ,-. |
-	|    | | | | |-' |
-	`--' `-` `-' `-' '
-	
-###
 
-
-class Label extends TextLayer
-	constructor: (options = {}) ->
-		@__constructor = true
+class DashedLine extends SVGShape
+	constructor: (pointA, pointB, color = '#000', offset = 0, options = {}) ->
 
 		_.assign options,
-			name: '.'
-			fontSize: 12
-			fontWeight: 500
-			color: '#777'
-			fontFamily: 'Menlo'
-
-		_.defaults options,
-			text: 'x'
-			value: 0
-
-		w = options.width
-		delete options.width
+			type: 'path'
+			d: "M #{pointA.x} #{pointA.y} L #{pointB.x} #{pointB.y}"
+			stroke: color
+			'stroke-width': '1px'
+			'stroke-dasharray': "5, 5"
+			'stroke-dashoffset': offset
 
 		super options
-
-		@valueLayer = new TextLayer
-			parent: @parent
-			name: '.'
-			fontSize: @fontSize
-			fontWeight: 500
-			color: '#333'
-			fontFamily: @fontFamily
-			x: @x + w
-			y: @y
-			text: '{value}'
-
-		delete @__constructor
-
-		@value = options.value
-		
-
-	@define "value",
-		get: -> return @_value
-		set: (value) ->
-			return if @__constructor
-			@_value = value
-			@valueLayer.template = value
 
 
 ctx = new SVGContext
@@ -359,6 +326,7 @@ class SpecElement
 	constructor: (className, options = {}, text) ->
 		@element = document.createElement('div')
 		@element.classList.add className
+		@element.classList.add 'SpecElement'
 
 		_.assign @element.style, options
 
@@ -404,7 +372,9 @@ class SpecLabel extends SpecElement
 		Object.defineProperty @, 
 			'text',
 			get: -> return @textLayer.element.textContent
-			set: (value) -> @textLayer.element.textContent = value
+			set: (value) ->
+				if typeof value is 'number' then value = value.toFixed()
+				@textLayer.element.textContent = value
 
 		@text = options.text ? ''
 
@@ -815,16 +785,39 @@ class SpecPanel
 		@specDivider2 = new SpecDivider
 			top: row(14.5, 2)
 		
-		# Component # -----------------
+		# Name
+		@nameLabel = new SpecLabel
+			top: row(15)
+			left: col0x
+			text: 'Name'
+			'font-size': '.65em'
+
+		@nameValueBox = new SpecWideValueBox
+			top: row(15)
+			left: col1x
+
+		# Component
 
 		@componentLabel = new SpecLabel
-			top: row(15)
+			top: row(16)
 			left: col0x
 			text: 'Component'
 			'font-size': '.65em'
 
 		@componentValueBox = new SpecWideValueBox
-			top: row(15)
+			top: row(16)
+			left: col1x
+
+		# Parent Component
+
+		@parentComponentLabel = new SpecLabel
+			top: row(17)
+			left: col0x
+			text: 'Part of'
+			'font-size': '.65em'
+
+		@parentComponentValueBox = new SpecWideValueBox
+			top: row(17)
 			left: col1x
 
 
@@ -863,6 +856,8 @@ class SpecPanel
 			['lineHeight', @lineHeightValueBox]
 			['fontStyle', @fontStyleValueBox]
 			['componentName', @componentValueBox]
+			['componentNames', @parentComponentValueBox]
+			['name', @nameValueBox]
 		]
 
 		colorProps = [
@@ -887,18 +882,17 @@ class SpecPanel
 			set: (value) =>
 				@props[variableName] = value
 
-				if not value?
+				if not value? or value is '0'
 					layer.value = ''
 					return
 
 				if float
-					if value is '0'
-						layer.value = ''
-						return
-
 					layer.value = parseFloat(value ? '0').toFixed(2)
 					return
 
+				if typeof value is 'number'
+					value = parseInt(value).toFixed()
+				
 				layer.value = value
 				
 	defineCustomColorProperty: (variableName, layer) ->
@@ -927,7 +921,7 @@ class SpecPanel
 		layer.element.style['border-color'] = 'rgba(118, 237, 93, 1.000)'
 		reset = => layer.element.style['border-color'] = startBorderColor
 
-		_.delay(reset, 250)
+		_.delay(reset, 100)
 
 
 	clearProps: =>
@@ -957,33 +951,35 @@ class SpecPanel
  # -------------------------------------------
 
 ###
-	 88888888b                            dP oo
-	 88                                   88
-	a88aaaa    88d888b. .d8888b. 88d888b. 88 dP 88d888b.
-	 88        88'  `88 88'  `88 88'  `88 88 88 88'  `88
-	 88        88       88.  .88 88.  .88 88 88 88    88
-	 dP        dP       `88888P8 88Y888P' dP dP dP    dP
-	                             88
-	                             dP
+	 .88888.             dP            dP
+	d8'   `88            88            88
+	88        .d8888b. d8888P .d8888b. 88d888b. .d8888b.
+	88   YP88 88'  `88   88   88'  `"" 88'  `88 88'  `88
+	Y8.   .88 88.  .88   88   88.  ... 88    88 88.  .88
+	 `88888'  `88888P'   dP   `88888P' dP    dP `88888P8
+	
+	
 ###
 
 
-class Fraplin
+class Gotcha
 	constructor: (options = {}) ->
 
 		@specPanel = new SpecPanel
 
 		_.defaults options,
-			color: 'red'
-			secondaryColor: 'white'
-			fontFamily: 'Arial'
+			color: 'rgba(72, 207, 255, 1.000)'
+			selectedColor: 'rgba(255, 1, 255, 1.000)'
+			secondaryColor: '#FFFFFF'
+			fontFamily: 'Menlo'
 			fontSize: '10'
-			fontWeight: '600'
+			fontWeight: '500'
 			borderRadius: 4
-			padding: {top: 2, bottom: 2, left: 4, right: 4}
+			padding: {top: 1, bottom: 1, left: 3, right: 3}
 
 		_.assign @,
 			color: options.color
+			selectedColor: options.selectedColor
 			secondaryColor: options.secondaryColor
 			fontFamily: options.fontFamily
 			fontSize: options.fontSize
@@ -994,8 +990,9 @@ class Fraplin
 			focusedElement: undefined
 			enabled: false
 			screenElement: document.getElementsByClassName('DeviceComponentPort')[0]
-			viewport: document.getElementsByClassName('DeviceComponentPort')[0]
 			layers: []
+			containers: []
+			timer: undefined
 
 		document.addEventListener('keyup', @toggle)
 		document.addEventListener('click', @clickHoveredElement)
@@ -1005,51 +1002,79 @@ class Fraplin
 
 		@context.childNodes[2].classList.add('IgnorePointerEvents')
 
-		@context.addEventListener("mouseover", @focus)
+		@context.addEventListener("mouseover", @tryFocus)
 		@context.addEventListener("mouseout", @unfocus)
 
-		Utils.insertCSS """ 
-			.framerLayer { 
-				pointer-events: all !important; 
-				} 
-
-			.DeviceContent {
-				pointer-events: none !important; 
-				}
-
-			.DeviceBackground {
-				pointer-events: none !important; 
-				}
-
-			.DeviceHands {
-				pointer-events: none !important; 
-				}
-
-			.DeviceComponentPort {
-				pointer-events: none !important; 
-			}
-
-			.IgnorePointerEvents {
-				pointer-events: none !important; 
-			}
-			"""
+		Framer.Device.hands.on "change:x", @showTransition
 
 	toggle: (event) =>
 		if event.key is "`"
-			if @enabled then @disable() else @enable()
+			if @opened then @disable() else @enable()
 
 			return
 
 		if event.key is "/"
 			return if not @enabled
 
-			if @hoveredElement is @selectedElement
+			if @hoveredLayer is @selectedLayer
 				@deselect()
 			else
 				@select()
 
 			return
 
+	enable: =>
+		@opened = true
+		@resetLayers()
+		@_canvasColor = Canvas.backgroundColor
+		@_deviceImage = Framer.Device.deviceImage
+		@_startPosition = Framer.Device.hands.x
+
+		Framer.Device.hands.animate 
+			x: @_startPosition - 122, 
+			options: {time: .4}
+
+		Framer.Device.hands.once Events.AnimationEnd, => 
+			@focus()
+			@enabled = true
+
+	disable: =>
+		@unfocus()
+		@enabled = false
+
+		Framer.Device.hands.animate 
+			x: @_startPosition,
+			options: {time: .35}
+
+		Framer.Device.hands.once Events.AnimationEnd, => 
+			@opened = false
+
+	showTransition: (xPos) =>
+		opacity = Utils.modulate(
+			xPos,
+			[@_startPosition - 56, @_startPosition - 112], 
+			[0, 1], 
+			true
+		)
+
+		@specPanel.panel.style.opacity = opacity
+
+		factor = Utils.modulate(
+			xPos, 
+			[@_startPosition, @_startPosition - 112],
+			[0, 1],
+			true
+		)
+
+		Canvas.backgroundColor = Color.mix @_canvasColor,'rgba(30, 30, 30, 1.000)', factor
+
+	findLayer: (element) ->
+		return if not element
+
+		if element.classList.contains('framerLayer')
+			return element
+
+		@findLayer(element.parentNode)
 
 	resetLayers: =>
 		@layers = []
@@ -1057,48 +1082,65 @@ class Fraplin
 		for layer in Framer.CurrentContext._layers
 			@layers.push layer
 
-	enable: =>
-
-		@resetLayers()
-
-		@enabled = true
-		@specPanel.panel.style.opacity = '1'
-		@focus()
-
-	disable: =>
-
-		@enabled = false
-		@specPanel.panel.style.opacity = '0'
-		@unfocus()
-
-
 	getLayerFromElement: (element) =>
-		if element.classList.contains('framerLayer')
-			layer = _.find(@layers, ['_element', element])
-		else
-			element = element.parentNode?.parentNode?.parentNode
-			layer = _.find(@layers, ['_element', element])
+		return if not element
 
-		return layer 
+		element = @findLayer(element)
+		layer = _.find(@layers, ['_element', element])
+
+		return layer
+
+	getComponentFromLayer: (layer, names = []) =>
+		if not layer
+			return names.join(', ')
+
+		if not _.includes(["Layer", "TextLayer", "ScrollComponent"], layer.constructor.name)
+			names.push(layer.constructor.name)
+
+		@getComponentFromLayer(layer.parent, names)
 
 	clickHoveredElement: (event) =>
 		return if not @enabled
+		return if not event
 
-		if @hoveredElement is @selectedElement
-			@deselect()
+		return if event.target.classList.contains('SpecElement')
+
+		e = (event?.target ? @hoveredElement)
+
+		layer = @getLayerFromElement(e)
+		return if not layer
+
+		element = layer._element
+
+		if element is @selectedElement
+			@deselect(element, layer)
 		else
-			@deselect()
-			Utils.delay 0, => @select()
+			@select(element, layer)
 
-	select: (event) =>
-		@selectedElement = @hoveredElement
-		@focus()
+	select: (element) =>
+		@selectedElement = element ? @hoveredLayer._element
+		Utils.delay 0, @focus
 
-	deselect: (event) =>
+	deselect: (element) =>
 		@selectedElement = undefined
-		@focus()
+		Utils.delay 0, @focus
+
+	getLayerDimensions: (layer) =>
+		frame = Utils.boundingFrame(layer)
+		frame = @framify(frame)
+		return frame
+
+	framify: (frame) ->
+		frame.maxX = frame.x + frame.width
+		frame.midX = Utils.round(frame.x + frame.width/2)
+
+		frame.maxY = frame.y + frame.height
+		frame.midY = Utils.round(frame.y + frame.height/2)
+
+		return frame
 
 	getDimensions: (element) =>
+		return if not element
 		d = element.getBoundingClientRect()
 
 		dimensions = {
@@ -1116,41 +1158,47 @@ class Fraplin
 		return dimensions
 
 	makeLine: (pointA, pointB, label = true) =>
+
+		color = if @selectedLayer? then @selectedColor else @color
+
 		line = new SVGShape
 			type: 'path'
 			d: "M #{pointA[0]} #{pointA[1]} L #{pointB[0]} #{pointB[1]}"
-			stroke: @color
+			stroke: color
 			'stroke-width': '1px'
 
 		if pointA[0] is pointB[0]
 
 			capA = new SVGShape
 				type: 'path'
-				d: "M #{pointA[0] - 4} #{pointA[1]} L #{pointA[0] + 5} #{pointA[1]}"
-				stroke: @color
+				d: "M #{pointA[0] - 5} #{pointA[1]} L #{pointA[0] + 5} #{pointA[1]}"
+				stroke: color
 				'stroke-width': '1px'
 
 			capB = new SVGShape
 				type: 'path'
-				d: "M #{pointB[0] - 4} #{pointB[1]} L #{pointB[0] + 5} #{pointB[1]}"
-				stroke: @color
+				d: "M #{pointB[0] - 5} #{pointB[1]} L #{pointB[0] + 5} #{pointB[1]}"
+				stroke: color
 				'stroke-width': '1px'
 
 		else if pointA[1] is pointB[1]
 
 			capA = new SVGShape
 				type: 'path'
-				d: "M #{pointA[0]} #{pointA[1] - 4} L #{pointA[0]} #{pointA[1] + 5}"
-				stroke: @color
+				d: "M #{pointA[0]} #{pointA[1] - 5} L #{pointA[0]} #{pointA[1] + 5}"
+				stroke: color
 				'stroke-width': '1px'
 
 			capB = new SVGShape
 				type: 'path'
-				d: "M #{pointB[0]} #{pointB[1] - 4} L #{pointB[0]} #{pointB[1] + 5}"
-				stroke: @color
+				d: "M #{pointB[0]} #{pointB[1] - 5} L #{pointB[0]} #{pointB[1] + 5}"
+				stroke: color
 				'stroke-width': '1px'
 
 	makeLabel: (x, y, text) =>
+
+		color = if @selectedLayer? then @selectedColor else @color
+
 		label = new SVGShape
 			type: 'text'
 			parent: ctx
@@ -1160,35 +1208,118 @@ class Fraplin
 			'font-size': @fontSize
 			'font-weight': @fontWeight
 			fill: @secondaryColor
-			text: (text / @ratio).toFixed()
+			text: Math.floor(text / @ratio)
 
 		l = @getDimensions(label.element)
 
 		label.x = x - l.width / 2
-		label.y = y + l.height / 4
+		label.y = y + l.height / 4 - 1
 
 		box = new SVGShape
 			type: 'rect'
 			parent: ctx
 			x: label.x - @padding.left
-			y: label.y - l.height
+			y: label.y - l.height + 1
 			width: l.width + @padding.left + @padding.right
-			height: l.height + @padding.top + @padding.bottom
+			height: l.height + @padding.top + @padding.bottom + 1
 			rx: @borderRadius
 			ry: @borderRadius
-			fill: @color
+			fill: new Color(color).darken(40)
+			# fill: 'rgba(41, 41, 41, 1.000)'
+			stroke: color
+			'stroke-width': '1px'
 
 		label.show()
+
+	makeBoundingRects: (s, h) =>
+		return if not s or not h
+
+		hoverFill = new Color(@color).alpha(.2)
+
+		if @hoveredElement is @screenElement
+			hoverFill = new Color(@color).alpha(0)
+
+		selectFill = new Color(@selectedColor).alpha(.2)
+
+		if @selectedElement is @screenElement
+			selectFill = new Color(@selectedColor).alpha(0)
+
+		hoveredRect = new SVGShape
+			type: 'rect'
+			parent: ctx
+			x: h.x
+			y: h.y
+			width: h.width
+			height: h.height
+			stroke: @color
+			fill: hoverFill
+			'stroke-width': '1px'
+
+
+		selectedRect = new SVGShape
+			type: 'rect'
+			parent: ctx
+			x: s.x
+			y: s.y
+			width: s.width
+			height: s.height
+			stroke: @selectedColor
+			fill: selectFill
+			'stroke-width': '1px'
+
+	makeDashedLines: (e, f, color, offset) =>
+		return if not e
+		return if e is f
+
+		color = new Color(color).alpha(.8)
+
+		new DashedLine(
+			{x: e.x, y: f.y},
+			{x: e.x, y: f.maxY}
+			color,
+			offset
+			)
+
+		new DashedLine(
+			{x: e.maxX, y: f.y},
+			{x: e.maxX, y: f.maxY},
+			color,
+			offset
+			)
+
+		new DashedLine(
+			{x: f.x, 	y: e.y},
+			{x: f.maxX, y: e.y},
+			color,
+			offset
+			)
+
+		new DashedLine(
+			{x: f.x, 	y: e.maxY},
+			{x: f.maxX, y: e.maxY},
+			color,
+			offset
+			)
 
 	showDistances: (selected, hovered) =>
 
 		s = @getDimensions(@selectedElement)
 		h = @getDimensions(@hoveredElement)
+		f = @getDimensions(@screenElement)
+
+		return if not s or not h
+		return if @hoveredLayer?.visible is false
+		return if @hoveredLayer?.opacity is 0
+		
+		# @makeDashedLines(h, f, @color, 0)
+		@makeDashedLines(s, f, @selectedColor, 5)
+
+		@makeBoundingRects(s, h)
 
 		@ratio = @screenElement.getBoundingClientRect().width / Screen.width
 
 		if @selectedElement is @hoveredElement
-			h = @getDimensions(@screenElement)
+			h = f
 
 		# When selected element contains hovered element
 
@@ -1196,7 +1327,7 @@ class Fraplin
 			
 			# top
 
-			d = Math.abs(s.y - h.y).toFixed()
+			d = Math.abs(s.y - h.y)
 			m = s.y + d / 2
 
 			@makeLine([h.midX, s.y + 5], [h.midX, h.y - 4])
@@ -1204,7 +1335,7 @@ class Fraplin
 
 			# right
 
-			d = Math.abs(s.maxX - h.maxX).toFixed()
+			d = Math.abs(s.maxX - h.maxX)
 			m = h.maxX + (d / 2)
 
 			@makeLine([h.maxX + 5, h.midY], [s.maxX - 4, h.midY])
@@ -1212,7 +1343,7 @@ class Fraplin
 
 			# bottom
 
-			d = Math.abs(s.maxY - h.maxY).toFixed()
+			d = Math.abs(s.maxY - h.maxY)
 			m = h.maxY + (d / 2)
 
 			@makeLine([h.midX, h.maxY + 5], [h.midX, s.maxY - 4])
@@ -1220,13 +1351,11 @@ class Fraplin
 
 			# left
 
-			d = Math.abs(s.x - h.x).toFixed()
+			d = Math.abs(s.x - h.x)
 			m = s.x + d / 2
 
 			@makeLine([s.x + 5, h.midY], [h.x - 4, h.midY])
 			@makeLabel(m, h.midY, d)
-
-			@makeBoundingRects(s, h)
 
 			return
 
@@ -1236,7 +1365,7 @@ class Fraplin
 			
 			# top
 
-			d = Math.abs(h.y - s.y).toFixed()
+			d = Math.abs(h.y - s.y)
 			m = h.y + d / 2
 
 			@makeLine([s.midX, h.y + 5], [s.midX, s.y - 4])
@@ -1244,7 +1373,7 @@ class Fraplin
 
 			# right
 
-			d = Math.abs(h.maxX - s.maxX).toFixed()
+			d = Math.abs(h.maxX - s.maxX)
 			m = s.maxX + (d / 2)
 
 			@makeLine([s.maxX + 5, s.midY], [h.maxX - 4, s.midY])
@@ -1252,7 +1381,7 @@ class Fraplin
 
 			# bottom
 
-			d = Math.abs(h.maxY - s.maxY).toFixed()
+			d = Math.abs(h.maxY - s.maxY)
 			m = s.maxY + (d / 2)
 
 			@makeLine([s.midX, s.maxY + 5], [s.midX, h.maxY - 4])
@@ -1260,13 +1389,12 @@ class Fraplin
 
 			# left
 
-			d = Math.abs(h.x - s.x).toFixed()
+			d = Math.abs(h.x - s.x)
 			m = h.x + d / 2
 
 			@makeLine([h.x + 5, s.midY], [s.x - 4, s.midY])
 			@makeLabel(m, s.midY, d)
 
-			@makeBoundingRects(s, h)
 
 			return
 
@@ -1276,115 +1404,73 @@ class Fraplin
 
 		if s.y > h.maxY
 
-			d = Math.abs(s.y - h.maxY).toFixed()
+			d = Math.abs(s.y - h.maxY)
 			m = s.y - (d / 2)
 
-			@makeLine([s.midX, h.maxY + 5], [s.midX, s.y - 4])
-			@makeLabel(s.midX, m, d)
+			@makeLine([h.midX, h.maxY + 5], [h.midX, s.y - 4])
+			@makeLabel(h.midX, m, d)
 
 		else if s.y > h.y
 
-			d = Math.abs(s.y - h.y).toFixed()
+			d = Math.abs(s.y - h.y)
 			m = s.y - (d / 2)
 
-			if h.x < s.x
-				@makeLine([s.midX, h.y + 5], [s.midX, s.y - 4])
-				@makeLabel(s.midX, m, d)
-			else
-				@makeLine([s.midX, h.y + 5], [s.midX, s.y - 4])
-				@makeLabel(s.midX, m, d)
+			@makeLine([h.midX, h.y + 5], [h.midX, s.y - 4])
+			@makeLabel(h.midX, m, d)
 
 		# left
 
-		if s.x > h.maxX
+		if h.maxX < s.x
 
-			d = Math.abs(s.x - h.maxX).toFixed()
+			d = Math.abs(s.x - h.maxX)
 			m = s.x - (d / 2)
 
-			@makeLine([h.maxX + 5, s.midY], [s.x - 4, s.midY])
-			@makeLabel(m, s.midY, d)
+			@makeLine([h.maxX + 5, h.midY], [s.x - 4, h.midY])
+			@makeLabel(m, h.midY, d)
 
-		else if s.x > h.x
+		else if h.x < s.x
 
-			d = Math.abs(s.x - h.x).toFixed()
+			d = Math.abs(s.x - h.x)
 			m = s.x - (d / 2)
 
-			if s.y > h.maxY
-				@makeLine([h.x + 5, s.midY], [s.x - 4, s.midY])
-				@makeLabel(m, s.midY, d)
-			else
-				@makeLine([h.x + 5, s.midY], [s.x - 4, s.midY])
-				@makeLabel(m, s.midY, d)
+			@makeLine([h.x + 5, h.midY], [s.x - 4, h.midY])
+			@makeLabel(m, h.midY, d)
 
 		# right
 
 		if s.maxX < h.x
 
-			d = Math.abs(h.x - s.maxX).toFixed()
+			d = Math.abs(h.x - s.maxX)
 			m = s.maxX + (d / 2)
 
-			@makeLine([s.maxX + 5, s.midY], [h.x - 4, s.midY])
-			@makeLabel(m, s.midY, d)
+			@makeLine([s.maxX + 5, h.midY], [h.x - 4, h.midY])
+			@makeLabel(m, h.midY, d)
 
 		else if s.x < h.x
 
-			d = Math.abs(h.x - s.x).toFixed()
+			d = Math.abs(h.x - s.x)
 			m = s.x + (d / 2)
 
-			if s.y > h.maxY
-				@makeLine([s.x + 5, h.midY], [h.x - 4, h.midY])
-				@makeLabel(m, h.midY, d)
-			else
-				@makeLine([s.x + 5, s.midY], [h.x - 4, s.midY])
-				@makeLabel(m, s.midY, d)
+			@makeLine([s.x + 5, h.midY], [h.x - 4, h.midY])
+			@makeLabel(m, h.midY, d)
 
 		# bottom
 
 		if s.maxY < h.y
 
-			d = Math.abs(h.y - s.maxY).toFixed()
+			d = Math.abs(h.y - s.maxY)
 			m = s.maxY + (d / 2)
 
-			@makeLine([s.midX, s.maxY + 5], [s.midX, h.y - 4])
-			@makeLabel(s.midX, m, d)
+			@makeLine([h.midX, s.maxY + 5], [h.midX, h.y - 4])
+			@makeLabel(h.midX, m, d)
 
 		else if s.y < h.y
 
-			d = Math.abs(h.y - s.y).toFixed()
+			d = Math.abs(h.y - s.y)
 			m = s.y + (d / 2)
 
-			if h.x < s.x
-				@makeLine([h.midX, s.y + 5], [h.midX, h.y - 4])
-				@makeLabel(h.midX, m, d)
-			else
-				@makeLine([h.midX, s.y + 5], [h.midX, h.y - 4])
-				@makeLabel(h.midX, m, d)
-
-		@makeBoundingRects(s, h)
-
-	makeBoundingRects: (s, h) =>
-
-		hoveredRect = new SVGShape
-			type: 'rect'
-			parent: ctx
-			x: h.x + 1
-			y: h.y + 1
-			width: h.width - 2
-			height: h.height - 2
-			stroke: 'blue'
-			fill: 'none'
-			'stroke-width': '1px'
-
-		selectedRect = new SVGShape
-			type: 'rect'
-			parent: ctx
-			x: s.x + 1
-			y: s.y + 1
-			width: s.width - 2
-			height: s.height - 2
-			stroke: 'red'
-			fill: 'none'
-			'stroke-width': '1px'
+			@makeLine([h.midX, s.y + 5], [h.midX, h.y - 4])
+			@makeLabel(h.midX, m, d)
 
 	setPanelProperties: () =>
 		h = @hoveredLayer
@@ -1392,38 +1478,31 @@ class Fraplin
 		s = @selectedLayer
 		se = @selectedElement
 
-		if not s? and not h?
+		layer = s ? h
+
+		if not layer?
 			@specPanel.clearProps()
 			return
 
-		if h? and not s?
-			_.assign @specPanel,
-				x: h.x
-				y: h.y
-				width: h.screenFrame.width
-				height: h.screenFrame.height
-				backgroundColor: h.backgroundColor
-				opacity: h.opacity
-				borderColor: h.borderColor
-				borderWidth: h.borderWidth
-				borderRadius: h.borderRadius
-				shadowColor: h.shadowColor
-				shadowSpread: h.shadowSpread
-				shadowX: h.shadowX
-				shadowY: h.shadowY
-				shadowBlur: h.shadowBlur
-				color: h.color
-				fontFamily: h.fontFamily
-				fontStyle: h.fontStyle
-				fontSize: h.fontSize
-				fontWeight: h.fontWeight
-				lineHeight: h.lineHeight
-				componentName: h.constructor.name
+		props = layer.props
 
-			@specPanel.setTextStyles(h.fontFamily)
+		_.assign props,
+			x: layer.screenFrame.x
+			y: layer.screenFrame.y
+			componentName: layer.constructor.name
+			componentNames: @getComponentFromLayer(layer.parent)
+			parentName: layer.parent?.name
 
-			return
+		_.assign @specPanel, props
 
+		@specPanel.setTextStyles(layer.fontFamily)
+
+	tryFocus: (event) =>
+		@currentHovered = event.target
+		do (event) =>
+			Utils.delay .04, =>
+				if @currentHovered is event.target
+					@focus(event)
 
 	focus: (event) =>
 		if @enabled is false
@@ -1432,22 +1511,21 @@ class Fraplin
 		@unfocus()
 
 		@selectedElement ?= @screenElement
-		@hoveredElement = (event?.target ? @hoveredElement)
-		
-		if not @hoveredElement
-			return
-
 		@selectedLayer = @getLayerFromElement(@selectedElement)
-		@hoveredLayer = @getLayerFromElement(@hoveredElement)
+
+		hoveredElement = (event?.target ? @hoveredElement ? @screenElement)
+
+		@hoveredLayer = @getLayerFromElement(hoveredElement)
+
+		@hoveredElement = @hoveredLayer?._element ? Framer.Device.backgroundLayer
+
 		@setPanelProperties()
 
 		@showDistances(@selectedElement, @hoveredElement)
 
-		if @screenElement is @hoveredElement
-			return
-
-	unfocus: (event) =>
+	unfocus: () =>
 		ctx.removeAll()
+		if not @selectedLayer then @specPanel.clearProps()
 
 
-exports.fraplin = new Fraplin
+exports.gotcha = new Gotcha
