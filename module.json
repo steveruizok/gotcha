@@ -4,7 +4,7 @@
     "author": "Steve Ruiz",
 
     "require": "require 'gotcha'",
-    "install": "cotcha.coffee",
+    "install": "gotcha.coffee",
     "example": "example.coffee",
 
     "thumb": "icon_small.png"
