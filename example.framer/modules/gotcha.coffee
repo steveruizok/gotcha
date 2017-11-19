@@ -785,37 +785,38 @@ class SpecPanel
 		@specDivider2 = new SpecDivider
 			top: row(14.5, 2)
 		
-		# Component
-
-		@componentLabel = new SpecLabel
-			top: row(15)
-			left: col0x
-			text: 'Component'
-			'font-size': '.65em'
-
-		@componentValueBox = new SpecWideValueBox
-			top: row(15)
-			left: col1x
-
 		# Name
 		@nameLabel = new SpecLabel
-			top: row(16)
+			top: row(15)
 			left: col0x
 			text: 'Name'
 			'font-size': '.65em'
 
 		@nameValueBox = new SpecWideValueBox
+			top: row(15)
+			left: col1x
+
+		# Component
+
+		@componentLabel = new SpecLabel
+			top: row(16)
+			left: col0x
+			text: 'Component'
+			'font-size': '.65em'
+
+		@componentValueBox = new SpecWideValueBox
 			top: row(16)
 			left: col1x
 
-		# Name
-		@parentNameLabel = new SpecLabel
+		# Parent Component
+
+		@parentComponentLabel = new SpecLabel
 			top: row(17)
 			left: col0x
-			text: 'Parent'
+			text: 'Part of'
 			'font-size': '.65em'
 
-		@parentNameValueBox = new SpecWideValueBox
+		@parentComponentValueBox = new SpecWideValueBox
 			top: row(17)
 			left: col1x
 
@@ -855,8 +856,8 @@ class SpecPanel
 			['lineHeight', @lineHeightValueBox]
 			['fontStyle', @fontStyleValueBox]
 			['componentName', @componentValueBox]
+			['componentNames', @parentComponentValueBox]
 			['name', @nameValueBox]
-			['parentName', @parentNameValueBox]
 		]
 
 		colorProps = [
@@ -920,7 +921,7 @@ class SpecPanel
 		layer.element.style['border-color'] = 'rgba(118, 237, 93, 1.000)'
 		reset = => layer.element.style['border-color'] = startBorderColor
 
-		_.delay(reset, 250)
+		_.delay(reset, 100)
 
 
 	clearProps: =>
@@ -1008,7 +1009,7 @@ class Gotcha
 
 	toggle: (event) =>
 		if event.key is "`"
-			if @enabled then @disable() else @enable()
+			if @opened then @disable() else @enable()
 
 			return
 
@@ -1021,6 +1022,32 @@ class Gotcha
 				@select()
 
 			return
+
+	enable: =>
+		@opened = true
+		@resetLayers()
+		@_canvasColor = Canvas.backgroundColor
+		@_deviceImage = Framer.Device.deviceImage
+		@_startPosition = Framer.Device.hands.x
+
+		Framer.Device.hands.animate 
+			x: @_startPosition - 122, 
+			options: {time: .4}
+
+		Framer.Device.hands.once Events.AnimationEnd, => 
+			@focus()
+			@enabled = true
+
+	disable: =>
+		@unfocus()
+		@enabled = false
+
+		Framer.Device.hands.animate 
+			x: @_startPosition,
+			options: {time: .35}
+
+		Framer.Device.hands.once Events.AnimationEnd, => 
+			@opened = false
 
 	showTransition: (xPos) =>
 		opacity = Utils.modulate(
@@ -1040,29 +1067,6 @@ class Gotcha
 		)
 
 		Canvas.backgroundColor = Color.mix @_canvasColor,'rgba(30, 30, 30, 1.000)', factor
-
-	enable: =>
-		@enabled = true
-		@resetLayers()
-		@_canvasColor = Canvas.backgroundColor
-		@_deviceImage = Framer.Device.deviceImage
-		@_startPosition = Framer.Device.hands.x
-
-		Framer.Device.hands.animate 
-			x: @_startPosition - 122, 
-			options: {time: .4}
-
-		Framer.Device.hands.once Events.AnimationEnd, => 
-			@focus()
-
-	disable: =>
-		@enabled = false
-
-		Framer.Device.hands.animate 
-			x: @_startPosition,
-			options: {time: .35}
-
-		@unfocus()
 
 	findLayer: (element) ->
 		return if not element
@@ -1085,6 +1089,15 @@ class Gotcha
 		layer = _.find(@layers, ['_element', element])
 
 		return layer
+
+	getComponentFromLayer: (layer, names = []) =>
+		if not layer
+			return names.join(', ')
+
+		if not _.includes(["Layer", "TextLayer", "ScrollComponent"], layer.constructor.name)
+			names.push(layer.constructor.name)
+
+		@getComponentFromLayer(layer.parent, names)
 
 	clickHoveredElement: (event) =>
 		return if not @enabled
@@ -1477,6 +1490,7 @@ class Gotcha
 			x: layer.screenFrame.x
 			y: layer.screenFrame.y
 			componentName: layer.constructor.name
+			componentNames: @getComponentFromLayer(layer.parent)
 			parentName: layer.parent?.name
 
 		_.assign @specPanel, props

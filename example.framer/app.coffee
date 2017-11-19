@@ -1,34 +1,51 @@
+# Gotcha Demo
 # @steveruizok
+
 require "gotcha"
 
-# Press ` to enable mode; press ` again to disable it.
 
 Screen.backgroundColor = '#000'
 
-class Bullet extends Layer
+# components
+
+# BulletItem
+class BulletItem extends Layer
 	constructor: (options = {}) ->
 		
 		_.defaults options,
+			name: 'Bullet Item'
+			backgroundColor: null
+			height: 15
+		
+		super options
+		
+		@bullet = new Layer
+			parent: @
+			name: 'Bullet'
+			y: Align.center(4)
 			height: 12
 			width: 12
 			borderRadius: 16
 			backgroundColor: '#FFF'
 		
-		super options
-		
 		@textLayer = new TextLayer
+			name: 'Label'
 			parent: @
-			x: @width + 16
-			y: Align.center
+			x: @bullet.width + 16
+			y: 0
 			fontFamily: 'Helvetica'
 			text: 'Gotcha'
 			color: '#fff'
 			fontWeight: 600
 			fontSize: 20
 			width: 300
-			lineHeight: 1
+			lineHeight: 1.2
 			text: options.text ? 'Bullet point'
+			
+		@height = @textLayer.height
+		@width = 320
 
+# CTA
 class CTA extends Layer
 	constructor: (options = {}) ->
 		
@@ -61,48 +78,66 @@ class CTA extends Layer
 		
 		@onTap => @action()
 
-# furniture
+# layers
 
-lowscrim.gradient =
-	start: 'rgba(0,0,0,.7)'
-	end: 'rgba(0,0,0,0)'
+title = new TextLayer
+	name: 'Title'
+	x: 32
+	y: 64
+	color: '#FFF'
+	fontSize: 56
+	fontWeight: 600
+	fontFamily: 'Helvetica'
+	text: 'Gotcha'
+	letterSpacing: 1.5
+	
+ok_hand.props =
+	x: title.maxX + 16
+	midY: title.midY
+	scale: 2.5
+	rotation: -20
+	opacity: 0
+	
+subtitle = new TextLayer
+	name: 'Subtitle'
+	x: title.x
+	y: title.maxY + 8
+	width: 320
+	fontSize: 24
+	color: '#FFF'
+	fontWeight: 600
+	fontFamily: 'Helvetica'
+	text: 'A developer handoff tool for Framer'
 
-subtitle.y = title.maxY + 8
-subtitle.width = 320
-subtitle.x = 32
-
-slides.brightness = 0
-
-b1 = new Bullet
+b1 = new BulletItem
 	x: 16
 	y: subtitle.maxY + 32
 	text: 'Press ` to enable or disable'
 	opacity: 0
 
-b2 = new Bullet
+b2 = new BulletItem
 	x: 16
 	y: b1.maxY + 32
 	text: 'Tap to select or deselect Layers'
 	opacity: 0
 
-b3 = new Bullet
+b3 = new BulletItem
 	x: 16
 	y: b2.maxY + 32
 	text: '... or press / while hovering'
 	opacity: 0
 	
-b4 = new Bullet
+b4 = new BulletItem
 	x: 16
 	y: b3.maxY + 32
 	text: 'Tap a value on the panel to copy'
 	opacity: 0
 
-b5 = new Bullet
+b5 = new BulletItem
 	x: 16
 	y: b4.maxY + 32
-	text: 'Works in Framer Cloud, too'
+	text: 'Works in Framer Cloud, too!'
 	opacity: 0
-
 
 getStarted = new CTA
 	name: 'Get Started CTA'
@@ -110,7 +145,19 @@ getStarted = new CTA
 	y: subtitle.maxY + 16
 	opacity: 0
 	text: 'Get Started'
-	
+
+slides.brightness = 0
+
+lowscrim.gradient =
+	start: 'rgba(0,0,0,.7)'
+	end: 'rgba(0,0,0,0)'
+
+
+
+# Functions
+
+# Starting Animations
+
 start = ->
 	title.opacity = 0
 	subtitle.opacity = 0
@@ -120,12 +167,19 @@ start = ->
 		options:
 			time: 2
 			delay: 1.5
+			
+	ok_hand.animate
+		opacity: 1
+		rotation: 10
+		options:
+			curve: Spring
+			delay: 2.2
 	
 	subtitle.animate
 		opacity: 1
 		options:
 			time: 1.5
-			delay: 2.5
+			delay: 3
 
 		
 	slides.animate
@@ -146,8 +200,10 @@ start = ->
 		opacity: 1
 		options:
 			time: .75
-			delay: 4.25
-	
+			delay: 5.25
+
+# Show Step 1
+
 showSteps1 = ->
 	slides.animate
 		blur: 4
@@ -172,7 +228,6 @@ showSteps1 = ->
 		options:
 			time: .35
 	
-		
 	b1.animate
 		opacity: 1
 		x: 32
@@ -181,6 +236,8 @@ showSteps1 = ->
 			delay: .3
 	
 	getStarted.action = showSteps2
+
+# Show Step 2
 
 showSteps2 = ->
 	
@@ -198,6 +255,8 @@ showSteps2 = ->
 	
 	getStarted.action = showSteps3
 
+# Show Step 3
+
 showSteps3 = ->
 	
 	getStarted.animate
@@ -213,7 +272,9 @@ showSteps3 = ->
 			delay: .5
 	
 	getStarted.action = showSteps4
-	
+
+# Show Step 4
+
 showSteps4 = ->
 	
 	getStarted.animate
@@ -229,7 +290,9 @@ showSteps4 = ->
 			delay: .5
 	
 	getStarted.action = showSteps5
-	
+
+# Show Step 5
+
 showSteps5 = ->
 	
 	getStarted.animate
@@ -248,6 +311,8 @@ showSteps5 = ->
 	getStarted.action = showSteps4
 
 
+# Kickoff
 
 getStarted.action = showSteps1
+
 start()
