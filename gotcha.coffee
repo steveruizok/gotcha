@@ -1066,12 +1066,12 @@ class Gotcha
 		Framer.Device.hands.on "change:x", @showTransition
 
 	toggle: (event) =>
-		if event.key is "`"
+		if event.key is "`" or event.key is "<"
 			if @opened then @disable() else @enable()
 
 			return
 
-		if event.key is "/"
+		if event.key is "/" or event.key is ">"
 			return if not @enabled
 
 			if @hoveredLayer is @selectedLayer
