@@ -28,7 +28,7 @@ To install manually, download the **gotcha.coffee** file and drag it into your p
 ## Usage
 
 - Tap anywhere in the Preview window.
-- Press ` to enable or disable Gotcha.
+- Press ` (or < for some EU keyboards) to enable or disable Gotcha.
 - Hover elements to see information about them.
 - Select an element by tapping on it, or by pressing / while hovered over it.
 - In the spec panel, click any field to copy the field's value.
