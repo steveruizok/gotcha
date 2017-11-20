@@ -1,6 +1,10 @@
 {
   "orientation" : 0,
+<<<<<<< HEAD
   "updateDelay" : 0.3,
+=======
+  "updateDelay" : 0.29999999999999999,
+>>>>>>> 3e881bb37bf185c5972c99cf0df00a02c3ebfb3a
   "designModeSelected" : 0,
   "cachedDeviceHeight" : 812,
   "contentScale" : 1,
