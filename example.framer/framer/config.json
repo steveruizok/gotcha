@@ -1,29 +1,22 @@
 {
-  "orientation": 0,
-  "updateDelay": 0.3,
-  "designModeSelected": 0,
-  "cachedDeviceHeight": 812,
-  "contentScale": 1,
-  "fullScreen": false,
-  "cachedDeviceWidth": 375,
-  "deviceType": "apple-iphone-x-space-gray",
-  "sharedPrototype": true,
-  "propertyPanelToggleStates": {
-    "Filters": false
+  "orientation" : 0,
+  "updateDelay" : 0.3,
+  "designModeSelected" : 0,
+  "cachedDeviceHeight" : 812,
+  "contentScale" : 1,
+  "fullScreen" : false,
+  "cachedDeviceWidth" : 375,
+  "deviceType" : "apple-iphone-x-space-gray",
+  "sharedPrototype" : true,
+  "propertyPanelToggleStates" : {
+    "Filters" : false
   },
-  "projectId": "19FADA68-0983-4D23-BDE8-BD7713234240",
-  "deviceOrientation": 0,
-  "selectedHand": "",
-  "showBezel": true,
-  "foldedCodeRanges": [
-    "{127, 647}",
-    "{775, 607}",
-    "{2555, 547}",
-    "{3103, 486}",
-    "{3590, 200}",
-    "{3791, 203}",
-    "{3995, 203}",
-    "{4199, 216}"
+  "projectId" : "19FADA68-0983-4D23-BDE8-BD7713234240",
+  "deviceOrientation" : 0,
+  "selectedHand" : "",
+  "showBezel" : true,
+  "foldedCodeRanges" : [
+
   ],
-  "deviceScale": "fit"
+  "deviceScale" : "fit"
 }

@@ -183,7 +183,30 @@ class SVGContext
 			for key, value of attributes
 				element.setAttribute(key, value)
 
+
+		# Create SVG element
+
+		@svg = document.createElementNS(svgNS, 'svg')
+	
+		context = document.getElementById('FramerContextRoot-TouchEmulator')
+		context.appendChild(@svg)
+
 		@frameElement = Framer.Device.screenBackground._element
+
+		@setContext()
+
+		# defs
+		
+		@svgDefs = document.createElementNS(svgNS, 'defs')
+		@svg.appendChild @svgDefs
+		
+		delete @__constructor
+
+	setAttributes: (element, attributes = {}) ->
+		for key, value of attributes
+			element.setAttribute(key, value)
+
+	setContext: =>
 
 		@lFrame = @frameElement.getBoundingClientRect()
 
@@ -193,17 +216,10 @@ class SVGContext
 			x: @lFrame.left.toFixed()
 			y: @lFrame.top.toFixed()
 
-		# Create SVG element
-
-		@svg = document.createElementNS(svgNS, 'svg')
-	
-		context = document.getElementById('FramerContextRoot-TouchEmulator')
-		context.appendChild(@svg)
-
 		@screenElement = document.getElementsByClassName('framerContext')[0]
 		sFrame = @screenElement.getBoundingClientRect()
 
-		setAttributes @svg,
+		@setAttributes @svg,
 			x: 0
 			y: 0
 			width: sFrame.width
@@ -217,13 +233,6 @@ class SVGContext
 			width: '100%'
 			height: '100%'
 			'pointer-events': 'none'
-
-		# defs
-		
-		@svgDefs = document.createElementNS(svgNS, 'defs')
-		@svg.appendChild @svgDefs
-		
-		delete @__constructor
 
 	addShape: (shape) ->
 		@shapes.push(shape)
@@ -1065,6 +1074,11 @@ class Gotcha
 
 		Framer.Device.hands.on "change:x", @showTransition
 
+	updateElements: =>
+		@screenElement = document.getElementsByClassName('DeviceComponentPort')[0]
+		@context = document.getElementsByClassName('framerLayer DeviceScreen')[0]
+	
+
 	toggle: (event) =>
 		if event.key is "`"
 			if @opened then @disable() else @enable()
@@ -1083,29 +1097,30 @@ class Gotcha
 
 	enable: =>
 		@opened = true
-		@resetLayers()
+
 		@_canvasColor = Canvas.backgroundColor
-		@_deviceImage = Framer.Device.deviceImage
 		@_startPosition = Framer.Device.hands.x
+
+		Framer.Device.hands.once Events.AnimationEnd, => 
+			@updateElements()
+			@resetLayers()
+			@focus()
+			@enabled = true
 
 		Framer.Device.hands.animate 
 			x: @_startPosition - 122, 
 			options: {time: .4}
 
-		Framer.Device.hands.once Events.AnimationEnd, => 
-			@focus()
-			@enabled = true
-
 	disable: =>
 		@unfocus()
 		@enabled = false
 
+		Framer.Device.hands.once Events.AnimationEnd, => 
+			@opened = false
+
 		Framer.Device.hands.animate 
 			x: @_startPosition,
 			options: {time: .35}
-
-		Framer.Device.hands.once Events.AnimationEnd, => 
-			@opened = false
 
 	showTransition: (xPos) =>
 		opacity = Utils.modulate(
@@ -1128,9 +1143,12 @@ class Gotcha
 
 	update: =>
 		return if not @opened
-
 		@_startPosition = Framer.Device.hands.x
 		Framer.Device.hands.x = @_startPosition - 122
+
+		ctx.setContext()
+		@focus()
+		
 
 	findLayer: (element) ->
 		return if not element
