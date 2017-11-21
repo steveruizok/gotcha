@@ -190,9 +190,8 @@ class SVGContext
 		# Create SVG element
 
 		@svg = document.createElementNS(svgNS, 'svg')
-	
-		context = document.getElementById('FramerContextRoot-TouchEmulator')
-		context.appendChild(@svg)
+		document.body.appendChild(@svg)
+		@svg.style['z-index'] = '999'
 
 		@frameElement = Framer.Device.screenBackground._element
 
