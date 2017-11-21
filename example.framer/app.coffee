@@ -112,7 +112,7 @@ subtitle = new TextLayer
 b1 = new BulletItem
 	x: 16
 	y: subtitle.maxY + 32
-	text: 'Press ` to enable or disable'
+	text: 'Press ` or < to enable or disable'
 	opacity: 0
 
 b2 = new BulletItem
@@ -124,7 +124,7 @@ b2 = new BulletItem
 b3 = new BulletItem
 	x: 16
 	y: b2.maxY + 32
-	text: '... or press / while hovering'
+	text: '... or press / or > while hovering'
 	opacity: 0
 	
 b4 = new BulletItem

@@ -104,12 +104,6 @@ Utils.insertCSS """
 	}
 """
 
-for name in ['screenBackground', 'phone', 'screen', 'handsImageLayer', 'screenMask', 'content']
-	layer = Framer.Device[name]
-	return if not layer
-
-	layer._element.classList.add('IgnorePointerEvents')
-
 # -------------------------------------------
 
 # 	 888888ba                             dP
@@ -154,6 +148,7 @@ document.body.appendChild(secretBox)
  # 	 Y88888P  888888'    `88888'      Y88888P' `88888P' dP  dP  dP 88Y888P' `88888P' dP    dP `88888P' dP    dP   dP   `88888P'
  # 	                                                               88
  # 	                                                               dP
+
 
 
 ###
@@ -1060,119 +1055,124 @@ class Gotcha
 			timer: undefined
 
 		document.addEventListener('keyup', @toggle)
-		document.addEventListener('click', @clickHoveredElement)
 		Framer.CurrentContext.domEventManager.wrap(window).addEventListener("resize", @update)
 
 		@context = document.getElementsByClassName('framerLayer DeviceScreen')[0]
 		@context.classList.add('hoverContext')
-
 		@context.childNodes[2].classList.add('IgnorePointerEvents')
 
-		@context.addEventListener("mouseover", @tryFocus)
-		@context.addEventListener("mouseout", @unfocus)
 
-		throttledShowTransition = Utils.throttle .1, @showTransition
-		Framer.Device.hands.on "change:x", throttledShowTransition
+	toggle: (event, open) =>
+		# return if Framer.Device.hands.isAnimating
 
-	updateElements: =>
-		@screenElement = document.getElementsByClassName('DeviceComponentPort')[0]
-		@context = document.getElementsByClassName('framerLayer DeviceScreen')[0]
-	
-
-	toggle: (event) =>
-		if event.key is "`" or event.key is "<"
+		if event.key is "`" or event.key is "<" or open is true
 			if @opened then @disable() else @enable()
-
+			@opened = !@opened
 			return
 
 		if event.key is "/" or event.key is ">"
 			return if not @enabled
 
 			if @hoveredLayer is @selectedLayer
-				@deselect()
+				@unsetSelectedLayer()
 			else
-				@select()
+				@setSelectedLayer()
 
 			return
 
+	# open the panel, start listening for events
 	enable: =>
-		@opened = true
-
 		@_canvasColor = Canvas.backgroundColor
-		@_startPosition = Framer.Device.hands.x
+		ctx.setContext()
 
-		Framer.Device.hands.once Events.AnimationEnd, => 
-			@updateElements()
-			@resetLayers()
-			@focus()
-			@enabled = true
-
-		Framer.Device.hands.animate 
-			x: @_startPosition - 122, 
-			options: {time: .4}
+		@transition(true)
 
 	disable: =>
 		@unfocus()
 		@enabled = false
 
-		Framer.Device.hands.once Events.AnimationEnd, => 
-			@opened = false
+		@transition(false)
 
-		Framer.Device.hands.animate 
-			x: @_startPosition,
-			options: {time: .35}
+	transition: (open = true, seconds = .5) =>
+		hands = Framer.Device.hands
 
-	showTransition: (xPos) =>
+		hands.on "change:x", @showTransition
+
+		hands.once Events.AnimationEnd, =>
+			hands.off "change:x", @showTransition
+			@enabled = @opened = open
+
+			if open
+				Framer.Device.screen.on Events.MouseOver, @setHoveredLayer
+				Framer.Device.screen.on Events.MouseOut, @unsetHoveredLayer
+				Framer.Device.screen.on Events.Click, @setSelectedLayer
+			else
+				Framer.Device.screen.off Events.MouseOver, @setHoveredLayer
+				Framer.Device.screen.off Events.MouseOut, @unsetHoveredLayer
+				Framer.Device.screen.off Events.Click, @setSelectedLayer
+
+			@focus()
+
+		@_startPosition = Framer.Device.hands.x
+
+		midX = hands._context.innerWidth / 2
+
+		Framer.Device.hands.animate
+			midX: if open then midX - 112 else midX
+			options:
+				time: seconds
+				curve: Spring(damping: 10)
+
+	showTransition: =>
+		hands = Framer.Device.hands
+		midX = hands._context.innerWidth / 2
+
 		opacity = Utils.modulate(
-			xPos,
-			[@_startPosition - 56, @_startPosition - 112], 
+			hands.midX,
+			[midX - 56, midX - 112], 
 			[0, 1], 
 			true
 		)
 
-		@specPanel.panel.style.opacity = opacity
-
 		factor = Utils.modulate(
-			xPos, 
-			[@_startPosition, @_startPosition - 112],
+			hands.midX,
+			[midX, midX - 112],
 			[0, 1],
 			true
 		)
 
+		@specPanel.panel.style.opacity = opacity
 		Canvas.backgroundColor = Color.mix @_canvasColor,'rgba(30, 30, 30, 1.000)', factor
 
+	# update when screen size changes
 	update: =>
 		return if not @opened
-		@_startPosition = Framer.Device.hands.x
-		Framer.Device.hands.x = @_startPosition - 122
+
+		Framer.Device.hands.midX -= 122
 
 		ctx.setContext()
 		@focus()
-		
 
-	findLayer: (element) ->
+	# Find an element that belongs to a Framer Layer
+	findLayerElement: (element) ->
 		return if not element
 		return if not element.classList
 
 		if element.classList.contains('framerLayer')
 			return element
 
-		@findLayer(element.parentNode)
+		@findLayerElement(element.parentNode)
 
-	resetLayers: =>
-		@layers = []
-
-		for layer in Framer.CurrentContext._layers
-			@layers.push layer
-
+	# Find a Framer Layer that matches a Framer Layer element
 	getLayerFromElement: (element) =>
 		return if not element
 
-		element = @findLayer(element)
-		layer = _.find(@layers, ['_element', element])
+		element = @findLayerElement(element)
+		layer = _.find(Framer.CurrentContext._layers, ['_element', element])
 
 		return layer
 
+	# Find a non-standard Component that includes a Layer
 	getComponentFromLayer: (layer, names = []) =>
 		if not layer
 			return names.join(', ')
@@ -1182,47 +1182,7 @@ class Gotcha
 
 		@getComponentFromLayer(layer.parent, names)
 
-	clickHoveredElement: (event) =>
-		return if not @enabled
-		return if not event
-		return if not event.target
-		return if event.target.classList.contains('SpecElement')
-		return if event.target.classList.contains('mememeLink')
-
-		e = (event?.target ? @hoveredElement)
-
-		layer = @getLayerFromElement(e)
-		return if not layer
-
-		element = layer._element
-
-		if element is @selectedElement
-			@deselect(element, layer)
-		else
-			@select(element, layer)
-
-	select: (element) =>
-		@selectedElement = element ? @hoveredLayer._element
-		Utils.delay 0, @focus
-
-	deselect: (element) =>
-		@selectedElement = undefined
-		Utils.delay 0, @focus
-
-	getLayerDimensions: (layer) =>
-		frame = Utils.boundingFrame(layer)
-		frame = @framify(frame)
-		return frame
-
-	framify: (frame) ->
-		frame.maxX = frame.x + frame.width
-		frame.midX = Utils.round(frame.x + frame.width/2)
-
-		frame.maxY = frame.y + frame.height
-		frame.midY = Utils.round(frame.y + frame.height/2)
-
-		return frame
-
+	# get the dimensions of an element
 	getDimensions: (element) =>
 		return if not element
 		d = element.getBoundingClientRect()
@@ -1241,6 +1201,7 @@ class Gotcha
 
 		return dimensions
 
+	# make a relative distance line
 	makeLine: (pointA, pointB, label = true) =>
 
 		color = if @selectedLayer? then @selectedColor else @color
@@ -1279,6 +1240,7 @@ class Gotcha
 				stroke: color
 				'stroke-width': '1px'
 
+	# make the label box for distance lines
 	makeLabel: (x, y, text) =>
 
 		color = if @selectedLayer? then @selectedColor else @color
@@ -1309,24 +1271,19 @@ class Gotcha
 			rx: @borderRadius
 			ry: @borderRadius
 			fill: new Color(color).darken(40)
-			# fill: 'rgba(41, 41, 41, 1.000)'
 			stroke: color
 			'stroke-width': '1px'
 
 		label.show()
 
-	makeBoundingRects: (s, h) =>
+	# make the bounding rectangle for selected / hovered elements
+	makeRectOverlays: (s, h) =>
 		return if not s or not h
 
-		hoverFill = new Color(@color).alpha(.2)
-
-		if @hoveredElement is @screenElement
+		if @hoveredLayer is Framer.Device.screen
 			hoverFill = new Color(@color).alpha(0)
-
-		selectFill = new Color(@selectedColor).alpha(.2)
-
-		if @selectedElement is @screenElement
-			selectFill = new Color(@selectedColor).alpha(0)
+		else
+			hoverFill = new Color(@color).alpha(.2)
 
 		hoveredRect = new SVGShape
 			type: 'rect'
@@ -1339,6 +1296,10 @@ class Gotcha
 			fill: hoverFill
 			'stroke-width': '1px'
 
+		if @selectedLayer is Framer.Device.screen
+			selectFill = new Color(@selectedColor).alpha(0)
+		else
+			selectFill = new Color(@selectedColor).alpha(.2)
 
 		selectedRect = new SVGShape
 			type: 'rect'
@@ -1351,6 +1312,7 @@ class Gotcha
 			fill: selectFill
 			'stroke-width': '1px'
 
+	# make dashed lines from bounding rect to screen edge
 	makeDashedLines: (e, f, color, offset) =>
 		return if not e
 		return if e is f
@@ -1387,23 +1349,21 @@ class Gotcha
 
 	showDistances: (selected, hovered) =>
 
-		s = @getDimensions(@selectedElement)
-		h = @getDimensions(@hoveredElement)
-		f = @getDimensions(@screenElement)
+		if @hoveredLayer is @selectedLayer
+			@hoveredLayer = Framer.Device.screen
+
+		s = @getDimensions(@selectedLayer._element)
+		h = @getDimensions(@hoveredLayer._element)
+		f = @getDimensions(Framer.Device.screen._element)
 
 		return if not s or not h
-		return if @hoveredLayer?.visible is false
-		return if @hoveredLayer?.opacity is 0
-		
-		# @makeDashedLines(h, f, @color, 0)
+
+		@ratio = Framer.Device.screen._element.getBoundingClientRect().width / Screen.width
+
 		@makeDashedLines(s, f, @selectedColor, 5)
 
-		@makeBoundingRects(s, h)
+		@makeRectOverlays(s, h)
 
-		@ratio = @screenElement.getBoundingClientRect().width / Screen.width
-
-		if @selectedElement is @hoveredElement
-			h = f
 
 		# When selected element contains hovered element
 
@@ -1556,15 +1516,13 @@ class Gotcha
 			@makeLine([h.midX, s.y + 5], [h.midX, h.y - 4])
 			@makeLabel(h.midX, m, d)
 
+	# set the panel with current properties
 	setPanelProperties: () =>
-		h = @hoveredLayer
-		he = @hoveredElement
-		s = @selectedLayer
-		se = @selectedElement
-
-		layer = s ? h
-
-		if not layer?
+		if @selectedLayer? and @selectedLayer isnt Framer.Device.screen
+			layer = @selectedLayer
+		else if @hoveredLayer?
+			layer = @hoveredLayer
+		else
 			@specPanel.clearProps()
 			return
 
@@ -1581,35 +1539,54 @@ class Gotcha
 
 		@specPanel.setTextStyles(layer.fontFamily)
 
-	tryFocus: (event) =>
-		@currentHovered = event.target
-		do (event) =>
-			Utils.delay .04, =>
-				if @currentHovered is event.target
-					@focus(event)
+	setHoveredLayer: (event) =>
+		return if not @enabled
+		return if not event
+		return if event.target.classList.contains('SpecElement')
+		return if event.target.classList.contains('mememeLink')
+		
+		@hoveredLayer = @getLayerFromElement(event?.target)
+		@tryFocus(event)
 
-	focus: (event) =>
-		if @enabled is false
-			return 
+	unsetHoveredLayer: =>
+		@hoveredLayer = undefined
+		if not @selectedLayer? then @unfocus()
+
+	setSelectedLayer: =>
+		return if not @hoveredLayer
+
+		@selectedLayer = @hoveredLayer
+		@focus()
+
+	unsetSelectedLayer: =>
+		@selectedLayer = undefined
+
+	# Delay focus by a small amount to prevent flashing
+	tryFocus: (event) =>
+		return if not @enabled
+
+		@focusElement = event.target
+		do (event) =>
+			Utils.delay .05, =>
+				if @focusElement isnt event.target
+					return
+				
+				@focus()
+
+	# Change focus to a new hovered or selected element
+	focus: =>
+		return if not @enabled
 
 		@unfocus()
 
-		@selectedElement ?= @screenElement
-		@selectedLayer = @getLayerFromElement(@selectedElement)
-
-		hoveredElement = (event?.target ? @hoveredElement ? @screenElement)
-
-		@hoveredLayer = @getLayerFromElement(hoveredElement)
-
-		@hoveredElement = @hoveredLayer?._element ? Framer.Device.backgroundLayer
+		@selectedLayer ?= Framer.Device.screen
+		@hoveredLayer ?= Framer.Device.screen
 
 		@setPanelProperties()
+		@showDistances()
 
-		@showDistances(@selectedElement, @hoveredElement)
-
-	unfocus: () =>
+	unfocus: (event) =>
 		ctx.removeAll()
-		if not @selectedLayer then @specPanel.clearProps()
 
 
 exports.gotcha = new Gotcha
