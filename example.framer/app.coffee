@@ -3,7 +3,6 @@
 
 require "gotcha"
 
-
 Screen.backgroundColor = '#000'
 
 # components
@@ -314,3 +313,4 @@ showSteps5 = ->
 getStarted.action = showSteps1
 
 start()
+

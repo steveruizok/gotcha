@@ -19,6 +19,11 @@ ctx = undefined
 
 startOpen = false
 
+# debugging
+
+# document.addEventListener 'click', (event) -> print event.target.classList
+document.getElementsByClassName('DevicePhone')[0]?.classList.add('IgnorePointerEvents')
+
 
 Utils.insertCSS """
 	
@@ -101,6 +106,10 @@ Utils.insertCSS """
 	
 	.IgnorePointerEvents {
 		pointer-events: none !important; 
+	}
+
+	.dropdown {
+		opacity: 0;
 	}
 """
 
@@ -473,6 +482,7 @@ class SpecBox extends SpecElement
 
 
 ###
+
 	 ,-.               ,-.     .         .   ,     .         ,-.
 	(   `             /        |         |  /      |         |  )
 	 `-.  ;-. ,-. ,-. |    ,-. | ,-. ;-. | /   ,-: | . . ,-. |-<  ,-. . ,
@@ -594,6 +604,47 @@ class SpecWideValueBox extends SpecValueBox
 
 		@element.style.width = '136px'
 
+# Spec Dropdown Box
+
+class SpecDropdownBox extends SpecWideValueBox
+	constructor: (options = {}) ->
+
+		_.defaults options,
+			options: [
+				{name: 'Blue', value: 'blue'}, 
+				{name: 'Red', value: 'red'}
+				{name: 'Green', value: 'green'}
+			]
+			callback: (value) -> null
+			selected: 0
+
+		super options
+
+		@callback = options.callback
+
+		@element.style.width = '136px'
+
+		@select = document.createElement('select')
+		@select.classList.add('dropdown')
+		@element.appendChild(@select)
+		@select.onchange = @setSelectValue
+
+		for option, i in options.options
+			o = document.createElement('option')
+			o.value = option.value
+			o.label = option.name
+			o.innerHTML = o.name
+			@select.appendChild(o)
+
+			if i is options.selected
+				o.selected = true
+				@value = @select.options[@select.selectedIndex].label
+
+	setSelectValue: =>
+		@value = @select.options[@select.selectedIndex].label
+		do _.bind(@callback, @select)
+
+
 
  # -------------------------------------------
 
@@ -634,22 +685,76 @@ class SpecPanel
 
 		row = (num, offset = 0) -> return (16 + (35 * num) - offset) + 'px'
 
+
+		# Device
+
+		@deviceLabel = new SpecLabel
+			top: row(0)
+			left: col0x
+			text: 'Device'
+			'font-size': '.65em'
+
+		deviceOptions = []
+		currentKey = undefined
+
+		for key, value of Framer.DeviceComponent.Devices
+			if _.endsWith(key, 'hand')
+				continue
+
+
+			if not value.minStudioVersion?
+				continue
+
+			if Utils.framerStudioVersion() > value.maxStudioVersion
+				continue 
+
+			if Utils.framerStudioVersion() < value.minStudioVersion
+				continue
+
+			deviceOptions.push
+				name: key, 
+				value: value
+
+			if key is Framer.Device.deviceType
+				currentKey = _.indexOf(
+					_.keys(Framer.DeviceComponent.Devices), 
+					key
+					)
+
+		@deviceSelect = new SpecDropdownBox
+			top: row(0)
+			left: col1x
+			options: _.uniq(deviceOptions) 
+			selected: currentKey
+			callback: (event) ->
+				device = deviceOptions[@selectedIndex]
+				selected = @options[@selectedIndex]
+				Framer.Device.deviceType = device.name
+
+				# silly fix
+				Framer.Device._context.devicePixelRatio = 0
+				Utils.delay 0, => 
+					Framer.Device._context.devicePixelRatio = device.value.devicePixelRatio
+
+		@specDivider1 = new SpecDivider
+			top: row(1.25, 2)
+
 		# pos
 
 		@posLabel = new SpecLabel
-			top: row(0, 2)
+			top: row(1.75, 2)
 			left: col0x
 			text: 'Position'
 			'font-size': '.65em'
 
 		@xValueBox = new SpecValueBox
-			top: row(0)
+			top: row(1.75)
 			left: col1x
 			text: '258'
 			unit: 'x'
 
 		@yValueBox = new SpecValueBox
-			top: row(0)
+			top: row(1.75)
 			left: col2x
 			text: '258'
 			unit: 'y'
@@ -657,19 +762,19 @@ class SpecPanel
 		# size
 
 		@sizeLabel = new SpecLabel
-			top: row(1, 2)
+			top: row(2.75, 2)
 			left: col0x
 			text: 'Size'
 			'font-size': '.65em'
 
 		@wValueBox = new SpecValueBox
-			top: row(1)
+			top: row(2.75)
 			left: col1x
 			text: '258'
 			unit: 'w'
 
 		@hValueBox = new SpecValueBox
-			top: row(1)
+			top: row(2.75)
 			left: col2x
 			text: '258'
 			unit: 'h'
@@ -677,25 +782,25 @@ class SpecPanel
 		# background
 
 		@bgColorLabel = new SpecLabel
-			top: row(2, 2)
+			top: row(3.75, 2)
 			left: col0x
 			text: 'Background'
 			'font-size': '.65em'
 
 		@bgColorValueBox = new SpecColorValueBox
-			top: row(2)
+			top: row(3.75)
 			left: col1x
 
 		# opacity
 
 		@opacityLabel = new SpecLabel
-			top: row(3, 2)
+			top: row(4.75, 2)
 			left: col0x
 			text: 'Opacity'
 			'font-size': '.65em'
 
 		@opacityValueBox = new SpecValueBox
-			top: row(3)
+			top: row(4.75)
 			left: col1x
 			text: '1.0'
 			unit: 'a'
@@ -703,22 +808,22 @@ class SpecPanel
 		# Divider # -----------------
 
 		@specDivider1 = new SpecDivider
-			top: row(4.25, 2)
+			top: row(6, 2)
 
 		# border
 
 		@borderColorLabel = new SpecLabel
-			top: row(4.75, 2)
+			top: row(6.5, 2)
 			left: col0x
 			text: 'Border'
 			'font-size': '.65em'
 
 		@borderColorValueBox = new SpecColorValueBox
-			top: row(4.75)
+			top: row(6.5)
 			left: col1x
 
 		@borderValueBox = new SpecValueBox
-			top: row(4.75)
+			top: row(6.5)
 			left: col2x
 			text: '1'
 			unit: 'w'
@@ -726,153 +831,153 @@ class SpecPanel
 		# radius
 
 		@radiusLabel = new SpecLabel
-			top: row(5.75, 2)
+			top: row(7.5, 2)
 			left: col0x
 			text: 'Radius'
 			'font-size': '.65em'
 
 		@radiusValueBox = new SpecValueBox
-			top: row(5.75)
+			top: row(7.5)
 			left: col1x
 			text: '0'
 
 		# shadow
 
 		@shadowLabel = new SpecLabel
-			top: row(6.75, 2)
+			top: row(8.5, 2)
 			left: col0x
 			text: 'Shadow'
 			'font-size': '.65em'
 
 		@shadowColorValueBox = new SpecColorValueBox
-			top: row(6.75)
+			top: row(8.5)
 			left: col1x
 
 		@shadowSpreadValueBox = new SpecValueBox
-			top: row(6.75)
+			top: row(8.5)
 			left: col2x
 			text: '1'
 			unit: 's'
 
 		@shadowXValueBox = new SpecValueBox
-			top: row(7.75)
+			top: row(9.5)
 			left: col1x
 			text: '0'
 			unit: 'x'
 
 		@shadowYValueBox = new SpecValueBox
-			top: row(7.75)
+			top: row(9.5)
 			left: col2x
 			text: '0'
 			unit: 'y'
 
 		@shadowBlurValueBox = new SpecValueBox
-			top: row(8.75)
+			top: row(10.5)
 			left: col1x
 			unit: 'blur'
 
 		# Divider # -----------------
 
 		@specDivider2 = new SpecDivider
-			top: row(10, 2)
+			top: row(11.75, 2)
 
 		# Font
 
 		@fontLabel = new SpecLabel
-			top: row(10.25, 2)
+			top: row(12.25, 2)
 			left: col0x
 			text: 'Font'
 			'font-size': '.65em'
 
 		@fontFamilyValueBox = new SpecWideValueBox
-			top: row(10.25)
+			top: row(12.25)
 			left: col1x
 
 		# Color
 
 		@colorLabel = new SpecLabel
-			top: row(11.25, 2)
+			top: row(13.25, 2)
 			left: col0x
 			text: 'Color'
 			'font-size': '.65em'
 
 		@colorValueBox = new SpecColorValueBox
-			top: row(11.25)
+			top: row(13.25)
 			left: col1x
 
 		@fontStyleValueBox = new SpecValueBox
-			top: row(11.25)
+			top: row(13.25)
 			left: col2x
 
 		# Font Size
 
 		@fontSizeLabel = new SpecLabel
-			top: row(12.25, 2)
+			top: row(14.25, 2)
 			left: col0x
 			text: 'Size'
 			'font-size': '.65em'
 
 		@fontSizeValueBox = new SpecValueBox
-			top: row(12.25)
+			top: row(14.25)
 			left: col1x
 			unit: 's'
 
 		@fontWeightValueBox = new SpecValueBox
-			top: row(12.25)
+			top: row(14.25)
 			left: col2x
 			unit: 'w'
 
 		# Line Height
 
 		@lineHightLabel = new SpecLabel
-			top: row(13.25, 2)
+			top: row(15.25, 2)
 			left: col0x
 			text: 'Height'
 			'font-size': '.65em'
 
 		@lineHeightValueBox = new SpecValueBox
-			top: row(13.25)
+			top: row(15.25)
 			left: col1x
 			unit: 'lh'
 
 		# Divider # -----------------
 
 		@specDivider2 = new SpecDivider
-			top: row(14.5, 2)
+			top: row(16.5, 2)
 		
 		# Name
 		@nameLabel = new SpecLabel
-			top: row(15)
+			top: row(17)
 			left: col0x
 			text: 'Name'
 			'font-size': '.65em'
 
 		@nameValueBox = new SpecWideValueBox
-			top: row(15)
+			top: row(17)
 			left: col1x
 
 		# Component
 
 		@componentLabel = new SpecLabel
-			top: row(16)
+			top: row(18)
 			left: col0x
 			text: 'Component'
 			'font-size': '.65em'
 
 		@componentValueBox = new SpecWideValueBox
-			top: row(16)
+			top: row(18)
 			left: col1x
 
 		# Parent Component
 
 		@parentComponentLabel = new SpecLabel
-			top: row(17)
+			top: row(19)
 			left: col0x
 			text: 'Part of'
 			'font-size': '.65em'
 
 		@parentComponentValueBox = new SpecWideValueBox
-			top: row(17)
+			top: row(19)
 			left: col1x
 
 
@@ -1061,6 +1166,10 @@ class Gotcha
 		@context.classList.add('hoverContext')
 		@context.childNodes[2].classList.add('IgnorePointerEvents')
 
+
+
+		Framer.Device.on "change:deviceType", =>
+			Utils.delay 0, @update
 
 	toggle: (event, open) =>
 		# return if Framer.Device.hands.isAnimating
@@ -1589,4 +1698,4 @@ class Gotcha
 		ctx.removeAll()
 
 
-exports.gotcha = new Gotcha
+exports.gotcha = gotcha = new Gotcha

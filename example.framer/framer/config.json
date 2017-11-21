@@ -1,12 +1,12 @@
 {
   "orientation" : 0,
-  "updateDelay" : 0.3,
+  "updateDelay" : 0.29999999999999999,
   "designModeSelected" : 0,
-  "cachedDeviceHeight" : 667,
-  "contentScale" : 1,
+  "cachedDeviceHeight" : 812,
+  "contentScale" : 2,
   "fullScreen" : false,
   "cachedDeviceWidth" : 375,
-  "deviceType" : "apple-iphone-8-space-gray",
+  "deviceType" : "apple-iphone-x-silver",
   "sharedPrototype" : true,
   "propertyPanelToggleStates" : {
     "Filters" : false
