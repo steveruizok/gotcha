@@ -1277,8 +1277,19 @@ class Gotcha
 
 		element = @findLayerElement(element)
 		layer = _.find(Framer.CurrentContext._layers, ['_element', element])
+		return if not @getLayerIsVisible(layer)
 
 		return layer
+
+	getLayerIsVisible: (layer) =>
+		if not layer
+			return true
+
+		if layer.opacity is 0 or layer.visible is false
+			return false
+
+		@getLayerIsVisible(layer.parent)
+
 
 	# Find a non-standard Component that includes a Layer
 	getComponentFromLayer: (layer, names = []) =>
