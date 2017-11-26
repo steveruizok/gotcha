@@ -36,10 +36,6 @@ ctx = undefined
 startOpen = false
 
 # debugging
-<<<<<<< HEAD
-=======
-# document.addEventListener 'click', (event) -> print event.target.classList
->>>>>>> master
 
 document.getElementsByClassName('DevicePhone')[0]?.classList.add('IgnorePointerEvents')
 
@@ -862,7 +858,6 @@ class SpecPanel
 			deviceOptions.push (key)
 
 			if key is Framer.Device.deviceType
-<<<<<<< HEAD
 				currentSelected = deviceOptions.length - 1
 
 		row = new pRow
@@ -917,41 +912,6 @@ class SpecPanel
 		# position
 
 		row = new pRow
-=======
-				currentKey = _.indexOf(
-					_.keys(Framer.DeviceComponent.Devices), 
-					key
-					)
-
-		@deviceSelect = new SpecDropdownBox
-			top: row(0)
-			left: col1x
-			options: _.uniq(deviceOptions) 
-			selected: currentKey
-			callback: (event) ->
-				device = deviceOptions[@selectedIndex]
-				selected = @options[@selectedIndex]
-
-				screenBg = Screen.backgroundColor
-
-				Framer.Device.deviceType = device.name
-
-				# silly fix
-				Framer.Device._context.devicePixelRatio = 0
-				Utils.delay 0, => 
-					Framer.Device._context.devicePixelRatio = device.value.devicePixelRatio
-
-					Screen.backgroundColor = screenBg
-
-		@specDivider1 = new SpecDivider
-			top: row(1.25, 2)
-
-		# pos
-
-		@posLabel = new SpecLabel
-			top: row(1.75, 2)
-			left: col0x
->>>>>>> master
 			text: 'Position'
 
 		@xBox = new pInput
@@ -2268,22 +2228,18 @@ class Gotcha
 
 	setHoveredLayer: (event) =>
 		return if not @enabled
-<<<<<<< HEAD
-		return if not event
-		
-		@hoveredLayer = @getLayerFromElement(event?.target)
-=======
 
 		layer = @getLayerFromElement(event?.target)
 		return if not @getLayerIsVisible(layer)
 
 		@hoveredLayer = layer
->>>>>>> master
 		@tryFocus(event)
 		return false
 
 	unsetHoveredLayer: (event) =>
 		@hoveredLayer = undefined
+		Utils.delay .05, =>
+			if not @hoveredLayer then @focus()
 
 	setSelectedLayer: =>
 		return if not @hoveredLayer
