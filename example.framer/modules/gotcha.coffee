@@ -128,62 +128,22 @@ Utils.insertCSS """
 	}
 """
 
-# -------------------------------------------
 
-# 	 888888ba                             dP
-# 	 88    `8b                            88
-# 	a88aaaa8P' .d8888b. 88d888b. .d8888b. 88
-# 	 88        88'  `88 88'  `88 88ooood8 88
-# 	 88        88.  .88 88    88 88.  ... 88
-# 	 dP        `88888P8 dP    dP `88888P' dP
-# 	
-# 	
+### -------------------------------------------
 
-
-panel = document.createElement('div')
-panel.id = 'pContainer'
-viewC = document.getElementById('FramerContextRoot-Default')
-Utils.delay 0, => viewC.appendChild(panel)
-
-
- # -------------------------------------------
-
-# 	.d88888b                                        dP    888888ba
-# 	88.    "'                                       88    88    `8b
-# 	`Y88888b. .d8888b. .d8888b. 88d888b. .d8888b. d8888P a88aaaa8P' .d8888b. dP.  .dP
-# 	      `8b 88ooood8 88'  `"" 88'  `88 88ooood8   88    88   `8b. 88'  `88  `8bd8'
-# 	d8'   .8P 88.  ... 88.  ... 88       88.  ...   88    88    .88 88.  .88  .d88b.
-# 	 Y88888P  `88888P' `88888P' dP       `88888P'   dP    88888888P `88888P' dP'  `dP
-# 	
-# 	
-
-secretBox = document.createElement('input')
-document.body.appendChild(secretBox)
-
-
- # -------------------------------------------
-
-
- # 	.d88888b  dP     dP  .88888.      a88888b.                                                                    dP
- # 	88.    "' 88     88 d8'   `88    d8'   `88                                                                    88
- # 	`Y88888b. 88    .8P 88           88        .d8888b. 88d8b.d8b. 88d888b. .d8888b. 88d888b. .d8888b. 88d888b. d8888P .d8888b.
- # 	      `8b 88    d8' 88   YP88    88        88'  `88 88'`88'`88 88'  `88 88'  `88 88'  `88 88ooood8 88'  `88   88   Y8ooooo.
- # 	d8'   .8P 88  .d8P  Y8.   .88    Y8.   .88 88.  .88 88  88  88 88.  .88 88.  .88 88    88 88.  ... 88    88   88         88
- # 	 Y88888P  888888'    `88888'      Y88888P' `88888P' dP  dP  dP 88Y888P' `88888P' dP    dP `88888P' dP    dP   dP   `88888P'
- # 	                                                               88
- # 	                                                               dP
-
-
-
-###
-	 ,-.  .   ,  ,-.  ,-.         .           .
-	(   ` |  /  /    /            |           |
-	 `-.  | /   | -. |    ,-. ;-. |-  ,-. . , |-
-	.   ) |/    \  | \    | | | | |   |-'  X  |
-	 `-'  '      `-'  `-' `-' ' ' `-' `-' ' ` `-'
-	
+  	.d88888b  dP     dP  .88888.      a88888b.                                                                    dP
+  	88.    "' 88     88 d8'   `88    d8'   `88                                                                    88
+  	`Y88888b. 88    .8P 88           88        .d8888b. 88d8b.d8b. 88d888b. .d8888b. 88d888b. .d8888b. 88d888b. d8888P .d8888b.
+  	      `8b 88    d8' 88   YP88    88        88'  `88 88'`88'`88 88'  `88 88'  `88 88'  `88 88ooood8 88'  `88   88   Y8ooooo.
+  	d8'   .8P 88  .d8P  Y8.   .88    Y8.   .88 88.  .88 88  88  88 88.  .88 88.  .88 88    88 88.  ... 88    88   88         88
+  	 Y88888P  888888'    `88888'      Y88888P' `88888P' dP  dP  dP 88Y888P' `88888P' dP    dP `88888P' dP    dP   dP   `88888P'
+  	                                                               88
+  	                                                               dP
 ###
 
+
+# ---------------------
+# SVG Context
 
 class SVGContext
 	constructor: (options = {}) ->
@@ -273,16 +233,8 @@ class SVGContext
 			@svg.removeChild(shape.element)
 		@shapes = []
 
-
-###
-	 ,-.  .   ,  ,-.  ,-.  .                                                                                                                             . ;-.
-	(   ` |  /  /    (   ` |                                                                                                                             | |  )
-	 `-.  | /   | -.  `-.  |-. ,-: ;-. ,-.                                                                                                             ,-| |-'
-	.   ) |/    \  | .   ) | | | | | | |-'                                                                                                             | | |
-	 `-'  '      `-'  `-'  ' ' `-` |-' `-'                                                                                                             `-' '
-	                               '
-###
-
+# ---------------------
+# SVG Shape
 
 class SVGShape
 	constructor: (options = {type: 'circle'}) ->
@@ -336,6 +288,8 @@ class SVGShape
 	remove: ->
 		@parent.removeShape(@)
 
+# ---------------------
+# Dashed Line
 
 class DashedLine extends SVGShape
 	constructor: (pointA, pointB, color = '#000', offset = 0, options = {}) ->
@@ -350,8 +304,6 @@ class DashedLine extends SVGShape
 
 		super options
 
-
-ctx = new SVGContext
 
 # ----------------------------------------
 # Panel Components
@@ -537,6 +489,25 @@ class pDiv
 		parent = options.parent?.element ? panel
 		parent.appendChild(@element)
 
+
+		Object.defineProperty @,
+			"visible",
+			get: -> return @_visible
+			set: (bool) ->
+				return if bool is @_visible
+
+				@_visible = bool
+
+				if bool
+					@element.classList.remove('hidden')
+					return
+
+				
+				@element.classList.add('hidden')
+
+# ---------------------
+# Row
+
 class pRow extends pDiv
 	constructor: (options = {}) ->
 
@@ -551,7 +522,6 @@ class pRow extends pDiv
 		@label = new pSpan
 			parent: @
 			text: options.text
-
 
 # ---------------------
 # Divider
@@ -619,6 +589,8 @@ class pInput
 			className: 'left'
 			value: ''
 			unit: 'x'
+			default: ''
+			section: undefined
 
 		@element = document.createElement('input')
 		@element.classList.add("pInput")
@@ -640,13 +612,33 @@ class pInput
 				@_value = value
 				@element.value = value ? String(@default)
 
-				if String(value) is String(@default)
+		Object.defineProperty @, 
+			'isDefault',
+			get: -> return @_isDefault
+			set: (bool) ->
+				@_isDefault = bool
+				@section?.visible = !bool
+
+				if bool
 					@element.classList.remove('hasValue')
 					return
 
 				@.element.classList.add('hasValue')
 
-		@value = options.value
+
+		@element.addEventListener 'click', =>
+			if not secretBox
+				return
+
+			secretBox.value = @value
+			secretBox.select()
+			document.execCommand('copy')
+			secretBox.blur()
+
+		_.assign @,
+			value: options.value
+			default: options.default
+			section: options.section
 
 # ---------------------
 # Image
@@ -658,6 +650,7 @@ class pImage
 			parent: null
 			value: ''
 			unit: ''
+			section: undefined
 
 		@element = document.createElement('img')
 		@element.classList.add("pImage")
@@ -671,8 +664,21 @@ class pImage
 			set: (value) ->
 				@_value = value
 				@element.src = value
+				@section?.visible = value isnt ''
 
-		@value = options.value
+
+		@element.addEventListener 'click', =>
+			if not secretBox
+				return
+
+			secretBox.value = @value
+			secretBox.select()
+			document.execCommand('copy')
+			secretBox.blur()
+
+		_.assign @,
+			value: options.value
+			section: options.section
 
 # ---------------------
 # Color Box
@@ -700,10 +706,23 @@ class pColor
 				if value?.color is 'transparent'
 					value = null
 
+				@section?.visible = value?
+
 				@_value = value
 				@element.style['background-color'] = value
 
-		@value = options.value
+		@element.addEventListener 'click', =>
+			if not secretBox
+				return
+
+			secretBox.value = @value
+			secretBox.select()
+			document.execCommand('copy')
+			secretBox.blur()
+
+		_.assign @,
+			value: options.value
+			section: options.section
 
 # ---------------------
 # Select
@@ -818,9 +837,18 @@ class pAccordian extends pRow
 			@unit.element.textContent = '▿'
 
 
-# -------------------------------------------
+### -------------------------------------------
 
-# Spec Panel
+ 	.d88888b                                 888888ba                             dP
+ 	88.    "'                                88    `8b                            88
+ 	`Y88888b. 88d888b. .d8888b. .d8888b.    a88aaaa8P' .d8888b. 88d888b. .d8888b. 88
+ 	      `8b 88'  `88 88ooood8 88'  `""     88        88'  `88 88'  `88 88ooood8 88
+ 	d8'   .8P 88.  .88 88.  ... 88.  ...     88        88.  .88 88    88 88.  ... 88
+ 	 Y88888P  88Y888P' `88888P' `88888P'     dP        `88888P8 dP    dP `88888P' dP
+ 	          88
+ 	          dP
+
+###
 
 class SpecPanel
 	constructor: ->
@@ -841,16 +869,6 @@ class SpecPanel
 						@props[key] = value
 
 		@panel.style.opacity = if startOpen then '1' else '0'
-
-
-
-
-
-
-
-
-
-
 
 
 		# ------------------
@@ -1078,38 +1096,53 @@ class SpecPanel
 		# ------------------
 		# shadow
 
+
+		@shadowPropertiesDiv = new pDiv
+
 		row = new pRow
+			parent: @shadowPropertiesDiv
 			text: 'Shadow'
 
 		@shadowColorBox = new pColor
 			parent: row
+			section: @shadowPropertiesDiv
 			className: 'left'
 
 		@shadowSpreadBox = new pInput
 			parent: row
+			section: @shadowPropertiesDiv
 			className: 'right'
 			unit: 's'
+			default: '0'
 
 		row = new pRow
+			parent: @shadowPropertiesDiv
 			text: ''
 
 		@shadowXBox = new pInput
 			parent: row
+			section: @shadowPropertiesDiv
 			className: 'left'
 			unit: 'x'
+			default: '0'
 
 		@shadowYBox = new pInput
 			parent: row
+			section: @shadowPropertiesDiv
 			className: 'right'
 			unit: 'y'
+			default: '0'
 
 		row = new pRow
+			parent: @shadowPropertiesDiv
 			text: ''
 
 		@shadowBlurBox = new pInput
 			parent: row
+			section: @shadowPropertiesDiv
 			className: 'left'
 			unit: 'b'
+			default: '0'
 
 
 
@@ -1133,6 +1166,7 @@ class SpecPanel
 
 		@fontFamilyBox = new pInput
 			parent: row
+			section: @textPropertiesDiv
 			className: 'full'
 			unit: ''
 
@@ -1145,10 +1179,12 @@ class SpecPanel
 
 		@colorBox = new pColor
 			parent: row
+			section: @textPropertiesDiv
 			className: 'left'
 
 		@fontSizeBox = new pInput
 			parent: row
+			section: @textPropertiesDiv
 			className: 'right'
 			unit: ''
 
@@ -1161,11 +1197,13 @@ class SpecPanel
 
 		@fontStyleBox = new pInput
 			parent: row
+			section: @textPropertiesDiv
 			className: 'left'
 			unit: ''
 
 		@fontWeightBox = new pInput
 			parent: row
+			section: @textPropertiesDiv
 			className: 'right'
 			unit: 'w'
 
@@ -1178,8 +1216,10 @@ class SpecPanel
 
 		@textAlignBox = new pInput
 			parent: row
+			section: @textPropertiesDiv
 			className: 'full'
 			unit: ''
+			default: 'left'
 
 		# ------------------
 		# spacing
@@ -1190,18 +1230,28 @@ class SpecPanel
 
 		@letterSpacingBox = new pInput
 			parent: row
+			section: @textPropertiesDiv
 			className: 'left'
 			unit: 'c'
 
 		@lineHeightBox = new pInput
 			parent: row
+			section: @textPropertiesDiv
 			className: 'right'
 			unit: 'l'
 
+		# ------------------
+		# text
 
+		row = new pRow
+			parent: @textPropertiesDiv
+			text: 'Text'
 
-
-
+		@textBox = new pInput
+			parent: row
+			section: @textPropertiesDiv
+			className: 'full'
+			unit: ''
 
 
 		# ------------------------------------
@@ -1221,6 +1271,7 @@ class SpecPanel
 
 		@scaleBox = new pInput
 			parent: row
+			section: @transformsAcco
 			className: 'left'
 			unit: ''
 
@@ -1230,11 +1281,13 @@ class SpecPanel
 
 		@scaleXBox = new pInput
 			parent: row
+			section: @transformsAcco
 			className: 'left'
 			unit: 'x'
 
 		@scaleYBox = new pInput
 			parent: row
+			section: @transformsAcco
 			className: 'right'
 			unit: 'y'
 
@@ -1247,6 +1300,7 @@ class SpecPanel
 
 		@rotationBox = new pInput
 			parent: row
+			section: @transformsAcco
 			className: 'left'
 			unit: ''
 
@@ -1256,11 +1310,13 @@ class SpecPanel
 
 		@rotationXBox = new pInput
 			parent: row
+			section: @transformsAcco
 			className: 'left'
 			unit: 'x'
 
 		@rotationYBox = new pInput
 			parent: row
+			section: @transformsAcco
 			className: 'right'
 			unit: 'y'
 
@@ -1274,11 +1330,13 @@ class SpecPanel
 
 		@originXBox = new pInput
 			parent: row
+			section: @transformsAcco
 			className: 'left'
 			unit: 'x'
 
 		@originYBox = new pInput
 			parent: row
+			section: @transformsAcco
 			className: 'right'
 			unit: 'y'
 
@@ -1291,6 +1349,7 @@ class SpecPanel
 
 		@skewBox = new pInput
 			parent: row
+			section: @transformsAcco
 			className: 'left'
 			unit: ''
 
@@ -1300,11 +1359,13 @@ class SpecPanel
 
 		@skewXBox = new pInput
 			parent: row
+			section: @transformsAcco
 			className: 'left'
 			unit: 'x'
 
 		@skewYBox = new pInput
 			parent: row
+			section: @transformsAcco
 			className: 'right'
 			unit: 'y'
 
@@ -1317,6 +1378,7 @@ class SpecPanel
 
 		@perspectiveBox = new pInput
 			parent: row
+			section: @transformsAcco
 			className: 'left'
 			unit: ''
 
@@ -1354,6 +1416,7 @@ class SpecPanel
 
 		@blurBox = new pInput
 			parent: row
+			section: @filtersAcco
 			className: 'left'
 			unit: ''
 
@@ -1366,6 +1429,7 @@ class SpecPanel
 
 		@brightnessBox = new pInput
 			parent: row
+			section: @filtersAcco
 			className: 'left'
 			unit: ''
 
@@ -1378,6 +1442,7 @@ class SpecPanel
 
 		@contrastBox = new pInput
 			parent: row
+			section: @filtersAcco
 			className: 'left'
 			unit: ''
 
@@ -1390,6 +1455,7 @@ class SpecPanel
 
 		@grayscaleBox = new pInput
 			parent: row
+			section: @filtersAcco
 			className: 'left'
 			unit: ''
 
@@ -1402,6 +1468,7 @@ class SpecPanel
 
 		@hueRotateBox = new pInput
 			parent: row
+			section: @filtersAcco
 			className: 'left'
 			unit: ''
 
@@ -1414,6 +1481,7 @@ class SpecPanel
 
 		@invertBox = new pInput
 			parent: row
+			section: @filtersAcco
 			className: 'left'
 			unit: ''
 
@@ -1426,6 +1494,7 @@ class SpecPanel
 
 		@saturateBox = new pInput
 			parent: row
+			section: @filtersAcco
 			className: 'left'
 			unit: ''
 
@@ -1438,28 +1507,32 @@ class SpecPanel
 
 		@sepiaBox = new pInput
 			parent: row
+			section: @filtersAcco
 			className: 'left'
 			unit: ''
 
 		# -------------------------- end filters
 
 
+
+
 		# image --------------------------------
 
-		@imageDiv = new pDiv
+		@imagePropertiesDiv = new pDiv
 
 		new pDivider
-			parent: @imageDiv
+			parent: @imagePropertiesDiv
 
 		# ------------------
 		# image
 
 		row = new pRow
-			parent: @imageDiv
+			parent: @imagePropertiesDiv
 			text: 'Image'
 
 		@imageBox = new pImage
-			parent: @imageDiv
+			parent: @imagePropertiesDiv
+			section: @imagePropertiesDiv
 
 
 		# ------------------
@@ -1495,72 +1568,150 @@ class SpecPanel
 			@socialMediaRow.element.appendChild(element)
 			@socialMediaRow.element.classList.add('socialLinks')
 
-		# ----
-
-		# properties
-
-		props = Framer.Device.background.props
 	
-		_.assign props,
-			componentName: ''
-			componentNames: ''
-			fontFamily: ''
-			fontSize: ''
-			letterSpacing: ''
-			lineHeight: ''
-			fontStyle: ''
-			textAlign: ''
-			fontWeight: ''
+	showProperties: (layer, customProps) =>
 
-		for key, value of props
+		props = layer.props
+		_.assign props, customProps
+
+		for key, value of _.merge(layer.props, customProps)
 			propLayer = @[key + 'Box']
 			if not propLayer
 				continue
 
-			@propLayers.push(propLayer)
-			@defineCustomProperty(key, propLayer)
-			@addCopyEvent(propLayer)
+			def = layer._propertyList()[key]?.default
+			
+			@showProperty(key, value, propLayer, def)
 
-	setVisibility: (layerName, bool) ->
-		if not bool
-			@[layerName].element.classList.add('hidden')
+		# @setVisibility(
+		# 	'shadowPropertiesDiv',
+		# 	layer.shadows?
+		# 	)
+
+		# @setVisibility(
+		# 	'gradientPropertiesDiv', 
+		# 	layer.gradient?
+		# 	)
+
+		# @setVisibility(
+		# 	'textPropertiesDiv', 
+		# 	layer.text?
+		# 	)
+
+		# @setVisibility(
+		# 	'imagePropertiesDiv', 
+		# 	layer.image isnt ''
+		# 	)
+
+		# more complex section specific visibility checks
+		# if any of the properties aren't a default...
+
+		# isException = (prop) -> not isDefault(prop)
+
+		# hasExceptions = (properties = []) ->
+		# 	return _.some( _.map( properties, isException ) )
+		
+		# filters = [
+		# 	'blur',
+		# 	'grayscale',
+		# 	'hueRotate',
+		# 	'invert',
+		# 	'sepia',
+		# 	'brightness',
+		# 	'contrast',
+		# 	'saturate',
+		# 	]
+
+		# transforms = [
+		# 	'skew',
+		# 	'skewX',
+		# 	'skewY',
+		# 	'scale',
+		# 	'scaleX',
+		# 	'scaleY',
+		# 	'rotationX',
+		# 	'rotationY',
+		# 	'rotationZ',
+		# 	'originX',
+		# 	'originY',
+		# 	'perspective',
+		# 	]
+
+		# @setVisibility(
+		# 	'transformsAcco', 
+		# 	hasExceptions(transforms)
+		# 	)
+
+		# @setVisibility(
+		# 	'filtersAcco', 
+		# 	hasExceptions(filters)
+		# 	)
+
+	showProperty: (key, value, propLayer, def) =>
+
+		propLayer.isDefault = value is def
+
+		if not value? or _.isNaN(value)
+			value = propLayer.default ? ''
+
+		# color
+		if Color.isColor(value)
+			value = value.color
+
+		# string
+		if typeof value is 'string'
+			propLayer.value = value
 			return
 
-		@[layerName].element.classList.remove('hidden')
+		value = value.toString()
 
-	defineCustomProperty: (variableName, layer, float) =>
-		Object.defineProperty @,
-			variableName,
-			get: => return @props[variableName]
-			set: (value) =>
-				@props[variableName] = value
+		# float
+		if value.indexOf('.') isnt -1
+			propLayer.value = parseFloat(value).toFixed(2)
+			return
 
-				if not value? or value is '0'
-					layer.value = ''
-					return
+		# numer
+		propLayer.value = parseInt(value, 10).toFixed()
 
-				if float
-					layer.value = parseFloat(value ? '0').toFixed(2)
-					return
+	setVisibility: (layer, bool) ->
+		if bool
+			layer.element.classList.add('hidden')
+			return
 
-				if typeof value is 'number'
-					value = parseInt(value).toFixed()
+		layer.element.classList.remove('hidden')
 
-				layer.value = value
+	# defineCustomProperty: (variableName, layer, float) =>
+	# 	Object.defineProperty @,
+	# 		variableName,
+	# 		get: => return @props[variableName]
+	# 		set: (value) =>
+	# 			@props[variableName] = value
 
-		layer.default = @defaults[variableName]?.default ? ''
+	# 			if not value? or value is '0'
+	# 				layer.value = ''
+	# 				return
 
-	addCopyEvent: (layer) ->
-		do (layer) =>
-			layer.element.addEventListener 'click', =>
-				@copyValue(layer)
+	# 			if float
+	# 				layer.value = parseFloat(value ? '0').toFixed(2)
+	# 				return
 
-	copyValue: (layer) =>
-		print layer.value
-		secretBox.value = layer.value
-		secretBox.select()
-		document.execCommand('copy')
-		secretBox.blur()
+	# 			if typeof value is 'number'
+	# 				value = parseInt(value).toFixed()
+
+	# 			layer.value = value
+
+	# 	layer.default = @defaults[variableName]?.default ? ''
+
+	# addCopyEvent: (layer) ->
+	# 	do (layer) =>
+	# 		layer.element.addEventListener 'click', =>
+	# 			@copyValue(layer)
+
+	# copyValue: (layer) =>
+	# 	secretBox.value = layer.value
+	# 	secretBox.select()
+	# 	document.execCommand('copy')
+	# 	secretBox.blur()
 
 	clearProps: =>
 		for prop in @propLayers
@@ -1570,16 +1721,17 @@ class SpecPanel
 
  # -------------------------------------------
 
-###
+
+### -------------------------------------------
+
 	 .88888.             dP            dP
 	d8'   `88            88            88
 	88        .d8888b. d8888P .d8888b. 88d888b. .d8888b.
 	88   YP88 88'  `88   88   88'  `"" 88'  `88 88'  `88
 	Y8.   .88 88.  .88   88   88.  ... 88    88 88.  .88
-	 `88888'  `88888P'   dP   `88888P' dP    dP `88888P8
-	
-	
-###
+	 `88888'  `88888P'   dP   `88888P' dP    dP `8888888
+
+### 
 
 
 class Gotcha
@@ -2082,6 +2234,8 @@ class Gotcha
 
 	# set the panel with current properties
 	setPanelProperties: () =>
+
+		# decice which layer to use for panel props
 		if @selectedLayer? and @selectedLayer isnt Framer.Device.screen
 			layer = @selectedLayer
 		else if @hoveredLayer?
@@ -2090,82 +2244,92 @@ class Gotcha
 			@specPanel.clearProps()
 			return
 
-		props = layer.props
+		# get the layer's properties
+		# props = layer.props
 
-		_.assign props,
+		customProps =
 			x: layer.screenFrame.x
 			y: layer.screenFrame.y
 			componentName: layer.constructor.name
 			componentNames: @getComponentFromLayer(layer.parent)
 			parentName: layer.parent?.name
 
-		_.assign @specPanel, props
+		if layer.shadows?
+			_.assign customProps,
+				shadowX: layer.shadows[0]?.x
+				shadowY: layer.shadows[0]?.y
+				shadowSpread: layer.shadows[0]?.spread
+				shadowColor: layer.shadows[0]?.color
+				shadowType: layer.shadows[0]?.type
+				shadowBlur: layer.shadows[0]?.blur
 
+		@specPanel.showProperties(layer, customProps)
 
+		# _.assign @specPanel, props
 
 		# show or hide panels depending on whether values have been set
 
-		defaultProperties = layer._propertyList()
+		# defaultProperties = layer._propertyList()
 
-		isDefault = (property) ->
-			def = defaultProperties[property]?.default
-			return !def? or layer[property] is def
+		# isDefault = (property) ->
+		# 	def = defaultProperties[property]?.default
+		# 	return !def? or layer[property] is def
 
-		isException = (prop) -> not isDefault(prop)
+		# isException = (prop) -> not isDefault(prop)
 
-		hasExceptions = (properties = []) ->
-			return _.some( _.map( properties, isException ) )
+		# hasExceptions = (properties = []) ->
+		# 	return _.some( _.map( properties, isException ) )
 		
-		filters = [
-			'blur',
-			'grayscale',
-			'hueRotate',
-			'invert',
-			'sepia',
-			'brightness',
-			'contrast',
-			'saturate',
-			]
+		# filters = [
+		# 	'blur',
+		# 	'grayscale',
+		# 	'hueRotate',
+		# 	'invert',
+		# 	'sepia',
+		# 	'brightness',
+		# 	'contrast',
+		# 	'saturate',
+		# 	]
 
-		transforms = [
-			'skew',
-			'skewX',
-			'skewY',
-			'scale',
-			'scaleX',
-			'scaleY',
-			'rotationX',
-			'rotationY',
-			'rotationZ',
-			'originX',
-			'originY',
-			'perspective',
-			]
+		# transforms = [
+		# 	'skew',
+		# 	'skewX',
+		# 	'skewY',
+		# 	'scale',
+		# 	'scaleX',
+		# 	'scaleY',
+		# 	'rotationX',
+		# 	'rotationY',
+		# 	'rotationZ',
+		# 	'originX',
+		# 	'originY',
+		# 	'perspective',
+		# 	]
 
-		@specPanel.setVisibility(
-			'textPropertiesDiv',
-			layer.fontFamily?
-			)
+		# @specPanel.setVisibility(
+		# 	'textPropertiesDiv',
+		# 	layer.fontFamily?
+		# 	)
 
-		@specPanel.setVisibility(
-			'gradientPropertiesDiv', 
-			layer.gradient?
-			)
+		# @specPanel.setVisibility(
+		# 	'gradientPropertiesDiv', 
+		# 	layer.gradient?
+		# 	)
 
-		@specPanel.setVisibility(
-			'transformsAcco', 
-			hasExceptions(transforms)
-			)
+		# @specPanel.setVisibility(
+		# 	'transformsAcco', 
+		# 	hasExceptions(transforms)
+		# 	)
 
-		@specPanel.setVisibility(
-			'filtersAcco', 
-			hasExceptions(filters)
-			)
+		# @specPanel.setVisibility(
+		# 	'filtersAcco', 
+		# 	hasExceptions(filters)
+		# 	)
 
-		@specPanel.setVisibility(
-			'imageDiv', 
-			layer.image isnt ''
-			)
+		# @specPanel.setVisibility(
+		# 	'imageDiv', 
+		# 	layer.image isnt ''
+		# 	)
 
 	setHoveredLayer: (event) =>
 		return if not @enabled
@@ -2216,5 +2380,17 @@ class Gotcha
 	unfocus: (event) =>
 		ctx.removeAll()
 
+
+
+panel = document.createElement('div')
+panel.id = 'pContainer'
+viewC = document.getElementById('FramerContextRoot-Default')
+Utils.delay 0, => viewC.appendChild(panel)
+
+secretBox = document.createElement('input')
+document.body.appendChild(secretBox)
+
+
+ctx = new SVGContext
 
 exports.gotcha = gotcha = new Gotcha

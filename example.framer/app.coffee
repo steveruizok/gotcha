@@ -152,10 +152,6 @@ lowscrim.gradient =
 	start: 'rgba(0,0,0,.7)'
 	end: 'rgba(0,0,0,0)'
 	
-layer = new Layer
-	borderColor: '#FFF'
-	borderStyle: 'dotted'
-	borderWidth: 2
 
 # Functions
 
@@ -319,3 +315,9 @@ showSteps5 = ->
 getStarted.action = showSteps1
 
 start()
+
+layer = new Layer
+	point: Align.center
+	shadowX: 1
+	shadowSpread: 2
+	shadowColor: 'red'
