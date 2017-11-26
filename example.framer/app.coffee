@@ -321,15 +321,3 @@ showSteps5 = ->
 getStarted.action = showSteps1
 
 start()
-
-blender = new Layer
-	blending: 'hardLight'
-	backgroundColor: 'red'
-	opacity: .5
-	
-blender = new Layer
-	blending: 'darken'
-	backgroundColor: 'red'
-	opacity: .5
-	y: 454
-	x: 454

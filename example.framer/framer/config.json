@@ -2,11 +2,11 @@
   "orientation" : 0,
   "updateDelay" : 0.3,
   "designModeSelected" : 0,
-  "cachedDeviceHeight" : 1024,
+  "cachedDeviceHeight" : 568,
   "contentScale" : 2,
   "fullScreen" : false,
-  "cachedDeviceWidth" : 768,
-  "deviceType" : "apple-ipad-air-2-gold",
+  "cachedDeviceWidth" : 320,
+  "deviceType" : "apple-iphone-se-space-gray",
   "sharedPrototype" : true,
   "propertyPanelToggleStates" : {
     "Filters" : true
@@ -16,15 +16,7 @@
   "selectedHand" : "",
   "showBezel" : true,
   "foldedCodeRanges" : [
-    "{96, 647}",
-    "{744, 671}",
-    "{1416, 1169}",
-    "{2599, 547}",
-    "{3147, 486}",
-    "{3634, 200}",
-    "{3835, 203}",
-    "{4039, 203}",
-    "{4243, 216}"
+
   ],
-  "deviceScale" : "fit"
+  "deviceScale" : -1
 }
