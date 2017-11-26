@@ -6,9 +6,6 @@ gotcha.onlyVisible = true
 
 Screen.backgroundColor = '#000'
 
-
-# components
-
 # BulletItem
 class BulletItem extends Layer
 	constructor: (options = {}) ->
@@ -38,7 +35,7 @@ class BulletItem extends Layer
 			text: 'Gotcha'
 			color: '#fff'
 			fontWeight: 600
-			fontSize: 20
+			fontSize: 18
 			width: 300
 			lineHeight: 1.2
 			text: options.text ? 'Bullet point'
@@ -83,8 +80,25 @@ class CTA extends Layer
 			text: 'Get Started'
 		
 		@onTap => @action()
+		
+		spin = new Animation @,
+			saturate: 150
+			gradient: 
+				start: '#0050fa'
+				end: '#00aaff'
+				angle: 50
+			options:
+				time: 3
+				
+		spinBack = spin.reverse()
+		
+		spin.onAnimationEnd -> spinBack.start()
+		spinBack.onAnimationEnd -> spin.start()
+		
+		spin.start()
 
 # layers
+
 
 title = new TextLayer
 	name: 'Title'
@@ -99,9 +113,10 @@ title = new TextLayer
 
 ok_hand.props =
 	x: title.maxX + 16
-	midY: title.midY
+	midY: title.midY - 12
 	scale: 2.5
-	rotation: -20
+	rotation: -10
+	padding: {top: 8}
 	opacity: 0
 	
 subtitle = new TextLayer
@@ -124,7 +139,7 @@ b1 = new BulletItem
 b2 = new BulletItem
 	x: 16
 	y: b1.maxY + 32
-	text: 'Tap to select or deselect Layers'
+	text: 'Tap a layer to select or deselect it'
 	opacity: 0
 
 b3 = new BulletItem
@@ -136,12 +151,18 @@ b3 = new BulletItem
 b4 = new BulletItem
 	x: 16
 	y: b3.maxY + 32
-	text: 'Tap a value on the panel to copy'
+	text: 'Select an animating layer to see its animations'
 	opacity: 0
 
 b5 = new BulletItem
 	x: 16
 	y: b4.maxY + 32
+	text: 'Tap a value on the panel to copy'
+	opacity: 0
+
+b6 = new BulletItem
+	x: 16
+	y: b5.maxY + 32
 	text: 'Works in Framer Cloud, too!'
 	opacity: 0
 
@@ -157,12 +178,46 @@ slides.brightness = 0
 lowscrim.gradient =
 	start: 'rgba(0,0,0,.7)'
 	end: 'rgba(0,0,0,0)'
+
+# animation toy
+
+loader = new Layer
+	width: 64
+	height: 64
+	x: Align.right(-32)
+	y: Align.bottom(-32)
+	backgroundColor: null
+	borderWidth: 16
+	borderRadius: 64
+	borderColor: '0070ff'
+	blending: Blending.colorDodge
+	opacity: 0
+	scale: .7
+
+loaderSplit = new Layer
+	parent: loader
+	height: 18, width: 18
+	x: Align.center
+	y: -2
+	backgroundColor: '#0070ff'
+	borderRadius: 8
+
+loading = new Animation loader,
+	rotation: 365
+	options:
+		time: 12
+		looping: true
+		curve: 'linear'
 	
+loading.start()
+loader.draggable.enabled = true
+loader.draggable.constraints = 
+	width: Screen.width
+	height: Screen.height
 
 # Functions
 
-# Starting Animations
-
+# start
 start = ->
 	title.opacity = 0
 	subtitle.opacity = 0
@@ -183,8 +238,8 @@ start = ->
 	subtitle.animate
 		opacity: 1
 		options:
-			time: 1.5
-			delay: 3
+			time: .8
+			delay: 3.2
 
 		
 	slides.animate
@@ -199,22 +254,29 @@ start = ->
 		options:
 			time: 4
 			curve: 'ease-out'
+	
+	
+	getStarted.once Events.AnimationEnd, ->
+		getStarted.action = showSteps1
 		
 	getStarted.animate
 		x: 32
 		opacity: 1
 		options:
 			time: .75
-			delay: 5.25
+			delay: 4.5
+			
+	
 
 # Show Step 1
 
 showSteps1 = ->
 	slides.animate
-		blur: 4
-		brightness: 55
+		blur: 6
+		scale: 1.03
+		brightness: 50
 		options:
-			time: .35
+			time: .7
 	
 	getStarted.textLayer.animate
 		opacity: 0
@@ -237,8 +299,8 @@ showSteps1 = ->
 		opacity: 1
 		x: 32
 		options:
-			time: 1.5
-			delay: .3
+			time: .5
+			delay: .5
 	
 	getStarted.action = showSteps2
 
@@ -293,6 +355,14 @@ showSteps4 = ->
 		options:
 			time: .5
 			delay: .5
+			
+	loader.animate
+		opacity: 1
+		scale: 1
+		options:
+			delay: 1.25
+			curve: Spring
+			time: .25
 	
 	getStarted.action = showSteps5
 
@@ -302,7 +372,6 @@ showSteps5 = ->
 	
 	getStarted.animate
 		y: b5.maxY + 32
-		opacity: 0
 		options:
 			time: .35
 				
@@ -312,12 +381,35 @@ showSteps5 = ->
 		options:
 			time: .5
 			delay: .5
+			
+	loader.animate
+		scale: .5
+		options:
+			time: .6
 	
-	getStarted.action = showSteps4
+	getStarted.action = showSteps6
+	
 
+# Show Step 6
+
+showSteps6 = ->
+	
+	getStarted.animate
+		y: b6.maxY + 32
+		opacity: 0
+		options:
+			time: .35
+				
+	b6.animate
+		opacity: 1
+		x: 32
+		options:
+			time: .5
+			delay: .5
+	
+	getStarted.action = -> null
+	
 
 # Kickoff
-
-getStarted.action = showSteps1
 
 start()
