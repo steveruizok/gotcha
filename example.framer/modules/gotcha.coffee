@@ -1626,181 +1626,184 @@ class SpecPanel
 		@hideDivs()
 		@clearProps()
 
+	clearChildrenThenShowAnimations: (animations) =>
+		child = @animsAcco.body.element.childNodes[0]
+
+		if not child
+			@showAnimations(animations)
+			return
+
+		@animsAcco.body.element.removeChild(child)
+		@clearChildrenThenShowAnimations(animations)
+
 	showAnimations: (animations) =>
 		
 		@animsDiv.visible = animations.length > 0
 	
-		for child in @animsAcco.body.element.childNodes
-			if not child
-			 	continue
+		for anim, i in animations
 
-			@animsAcco.body.element.removeChild(child)
+			properties = anim.properties
+			options = anim.options
+			stateA = anim._stateA
+			stateB = anim._stateB
 
-		Utils.delay 0, =>
-			for anim, i in animations
+			# --------------------------------
+			# animation
 
-				properties = anim.properties
-				options = anim.options
-				stateA = anim._stateA
-				stateB = anim._stateB
+			row = new pRow
+				parent: @animsAcco.body
+				text: 'Animation ' + (i + 1)
 
-				# --------------------------------
-				# animation
+			fromUnit = new pLabel
+				parent: row 
+				className: 'left'
+				text: 'from'
 
-				row = new pRow
+			toUnit = new pLabel
+				parent: row 
+				className: 'right'
+				text: 'to'
+
+			for element in [fromUnit.element, toUnit.element]
+				element.classList.add('alignLeft')
+
+
+			# ---------------
+			# properties
+
+			for key, value of properties
+
+				switch key
+					when 'gradient'
+
+						row = new pRow
+							parent: @animsAcco.body
+							text: 'Grad Start'
+					
+						# from
+						box = new pInput
+							parent: row
+							className: 'left'
+							unit: ''
+							value: stateA[key].start
+							isDefault: false
+
+						# to
+						box = new pInput
+							parent: row
+							className: 'right'
+							unit: ''
+							value: stateB[key].start
+							isDefault: false
+
+						row = new pRow
+							parent: @animsAcco.body
+							text: 'Grad End'
+					
+						# from
+						box = new pInput
+							parent: row
+							className: 'left'
+							unit: ''
+							value: stateA[key].end
+							isDefault: false
+
+						# to
+						box = new pInput
+							parent: row
+							className: 'right'
+							unit: ''
+							value: stateB[key].end
+							isDefault: false
+
+						row = new pRow
+							parent: @animsAcco.body
+							text: 'Grad Angle'
+					
+						# from
+						box = new pInput
+							parent: row
+							className: 'left'
+							unit: ''
+							value: stateA[key].angle
+							isDefault: false
+
+						# to
+						box = new pInput
+							parent: row
+							className: 'right'
+							unit: ''
+							value: stateB[key].angle
+							isDefault: false
+
+					else
+
+						row = new pRow
+							parent: @animsAcco.body
+							text: _.startCase(key)
+
+						# from
+						box = new pInput
+							parent: row
+							className: 'left'
+							unit: ''
+							value: stateA[key]
+							isDefault: false
+
+						# to
+						box = new pInput
+							parent: row
+							className: 'right'
+							unit: ''
+							value: stateB[key]
+							isDefault: false
+
+			# ---------------
+			# options
+
+			row = new pRow
+				parent: @animsAcco.body
+				text: 'Options'
+
+			# time
+			box = new pInput
+				parent: row
+				className: 'left'
+				unit: 's'
+				value: options.time
+				isDefault: false
+
+			# time
+			box = new pInput
+				parent: row
+				className: 'right'
+				unit: 'd'
+				value: options.delay
+				isDefault: false
+
+			row = new pRow
+				parent: @animsAcco.body
+				text: ''
+
+			# repeat
+			box = new pInput
+				parent: row
+				className: 'left'
+				unit: 'r'
+				value: options.repeat
+				isDefault: false
+
+			# time
+			box = new pInput
+				parent: row
+				className: 'right'
+				unit: 'l'
+				value: options.looping
+				isDefault: false
+
+			unless i is animations.length - 1
+				new pDivider
 					parent: @animsAcco.body
-					text: 'Animation ' + (i + 1)
-
-				fromUnit = new pLabel
-					parent: row 
-					className: 'left'
-					text: 'from'
-
-				toUnit = new pLabel
-					parent: row 
-					className: 'right'
-					text: 'to'
-
-				for element in [fromUnit.element, toUnit.element]
-					element.classList.add('alignLeft')
-
-
-				# ---------------
-				# properties
-
-				for key, value of properties
-
-					switch key
-						when 'gradient'
-
-							row = new pRow
-								parent: @animsAcco.body
-								text: 'Grad Start'
-						
-							# from
-							box = new pInput
-								parent: row
-								className: 'left'
-								unit: ''
-								value: stateA[key].start
-								isDefault: false
-
-							# to
-							box = new pInput
-								parent: row
-								className: 'right'
-								unit: ''
-								value: stateB[key].start
-								isDefault: false
-
-							row = new pRow
-								parent: @animsAcco.body
-								text: 'Grad End'
-						
-							# from
-							box = new pInput
-								parent: row
-								className: 'left'
-								unit: ''
-								value: stateA[key].end
-								isDefault: false
-
-							# to
-							box = new pInput
-								parent: row
-								className: 'right'
-								unit: ''
-								value: stateB[key].end
-								isDefault: false
-
-							row = new pRow
-								parent: @animsAcco.body
-								text: 'Grad Angle'
-						
-							# from
-							box = new pInput
-								parent: row
-								className: 'left'
-								unit: ''
-								value: stateA[key].angle
-								isDefault: false
-
-							# to
-							box = new pInput
-								parent: row
-								className: 'right'
-								unit: ''
-								value: stateB[key].angle
-								isDefault: false
-
-						else
-
-							row = new pRow
-								parent: @animsAcco.body
-								text: _.startCase(key)
-
-							# from
-							box = new pInput
-								parent: row
-								className: 'left'
-								unit: ''
-								value: stateA[key]
-								isDefault: false
-
-							# to
-							box = new pInput
-								parent: row
-								className: 'right'
-								unit: ''
-								value: stateB[key]
-								isDefault: false
-
-				# ---------------
-				# options
-
-				row = new pRow
-					parent: @animsAcco.body
-					text: 'Options'
-
-				# time
-				box = new pInput
-					parent: row
-					className: 'left'
-					unit: 's'
-					value: options.time
-					isDefault: false
-
-				# time
-				box = new pInput
-					parent: row
-					className: 'right'
-					unit: 'd'
-					value: options.delay
-					isDefault: false
-
-				row = new pRow
-					parent: @animsAcco.body
-					text: ''
-
-				# repeat
-				box = new pInput
-					parent: row
-					className: 'left'
-					unit: 'r'
-					value: options.repeat
-					isDefault: false
-
-				# time
-				box = new pInput
-					parent: row
-					className: 'right'
-					unit: 'l'
-					value: options.looping
-					isDefault: false
-
-				unless i is animations.length - 1
-					new pDivider
-						parent: @animsAcco.body
 
 		
 	showProperties: (layer, customProps) =>
@@ -2419,7 +2422,7 @@ class Gotcha
 
 		animations = layer.animations()
 
-		@specPanel.showAnimations(animations)
+		@specPanel.clearChildrenThenShowAnimations(animations)
 
 
 	setHoveredLayer: (event) =>

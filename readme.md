@@ -5,7 +5,7 @@
 </h1>
 <br>
 <p align="center">  
-	<a href="https://framer.cloud/OPNdS"><img src="splash.jpg" width="800"></a>
+	<a href="https://framer.cloud/OPNdS"><img src="splash.png" width="800"></a>
 	<br>
 	<h6 align="center">INTRODUCTION</h6>
 	<p align="center" width="800">
