@@ -2,11 +2,11 @@
   "orientation" : 0,
   "updateDelay" : 1,
   "designModeSelected" : 0,
-  "cachedDeviceHeight" : 667,
+  "cachedDeviceHeight" : 812,
   "contentScale" : 2,
   "fullScreen" : false,
   "cachedDeviceWidth" : 375,
-  "deviceType" : "apple-iphone-8-space-gray",
+  "deviceType" : "apple-iphone-x-space-gray",
   "sharedPrototype" : true,
   "propertyPanelToggleStates" : {
     "Filters" : true
