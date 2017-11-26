@@ -8,16 +8,8 @@
 # 	
 # by @steveruizok
 #
-#
 # A Framer module for handoff. It works kind of like that other tool.
 
-# Todo:
-# - add (open) accordian section for text styles
-# - text styles should only be visible when hovering a text layer
-# - clean up fields without values
-# - add hasText events to input, etc
-# - add section for layer names
-# - add property calls for remaining properties
 
 deviceType = window.localStorage.deviceType
 
@@ -31,56 +23,12 @@ if deviceType?
 Framer.Extras.Hints.disable()
 
 svgContext = undefined
-ctx = undefined
-
 startOpen = false
+accordionsOpen = false
 
 # debugging
 
 document.getElementsByClassName('DevicePhone')[0]?.classList.add('IgnorePointerEvents')
-
-
-Utils.insertCSS """
-
-	.logo {
-		opacity: .4;
-	}
-
-	.logo:hover {
-		opacity: 1;
-	}
-	
-	#linkedin_logo {
-		position: absolute;
-		bottom: 8px;
-		right: 68px;
-	}
-
-	
-	#twitter_logo {
-		position: absolute;
-		bottom: 4px;
-		right: 4px;
-	}
-
-	#github_logo {
-		position: absolute;
-		bottom: 8px;
-		right: 36px;
-	}
-
-	.framerLayer { 
-		pointer-events: all !important; 
-		} 
-	
-	.IgnorePointerEvents {
-		pointer-events: none !important; 
-	}
-
-	.dropdown {
-		opacity: 0;
-	}
-"""
 
 
 ### -------------------------------------------
@@ -264,6 +212,45 @@ class DashedLine extends SVGShape
 
 Utils.insertCSS """
 
+	.logo {
+		opacity: .4;
+	}
+
+	.logo:hover {
+		opacity: 1;
+	}
+	
+	#linkedin_logo {
+		position: absolute;
+		bottom: 8px;
+		right: 68px;
+	}
+
+	
+	#twitter_logo {
+		position: absolute;
+		bottom: 4px;
+		right: 4px;
+	}
+
+	#github_logo {
+		position: absolute;
+		bottom: 8px;
+		right: 36px;
+	}
+
+	.framerLayer { 
+		pointer-events: all !important; 
+		} 
+	
+	.IgnorePointerEvents {
+		pointer-events: none !important; 
+	}
+
+	.dropdown {
+		opacity: 0;
+	}
+
 	#pContainer {
 		position: fixed;
 		right: 0;
@@ -340,6 +327,10 @@ Utils.insertCSS """
 		width: 48px;
 	}
 
+	.alignLeft {
+		text-align: left;
+	}
+
 	.full {
 		right: 8px;
 		width: 112px;
@@ -349,13 +340,14 @@ Utils.insertCSS """
 		display: block;
 		margin-left: 8px;
 		height: auto;
-		width: 208px;
+		width: 196px;
 		overflow: hidden;
 		background-color: #292929;
 		border: 1px solid #000;
 		border-radius: 4px;
 		outline: 4px solid #292929;
 		outline-offset: -4px;
+		padding: 4px;
 	}
 
 	.pImage:hover {
@@ -394,11 +386,12 @@ Utils.insertCSS """
 	}
 
 	.pAccordian {
-		border-top: 1px solid #000;
-		border-bottom: 1px solid #000;
+		border-top: 1px solid #141414;
+		border-bottom: 1px solid #141414;
 		height: auto;
 		min-height: 32px;
 		background-color: #1D1D1D;
+		margin-top: 16px;
 	}
 
 	.pAccordianBody {
@@ -544,6 +537,7 @@ class pInput
 			value: ''
 			unit: 'x'
 			default: ''
+			isDefault: true
 			section: undefined
 
 		@element = document.createElement('input')
@@ -599,6 +593,7 @@ class pInput
 			value: options.value
 			default: options.default
 			section: options.section
+			isDefault: options.isDefault
 
 # ---------------------
 # Image
@@ -785,7 +780,7 @@ class pAccordian extends pRow
 		@body.element.addEventListener 'click', (event) -> 
 			event.stopPropagation()
 
-		@toggle() # start open
+		if accordionsOpen then @toggle() # start open
 
 	toggle: =>
 		@toggled = !@toggled
@@ -816,10 +811,10 @@ class pAccordian extends pRow
 class SpecPanel
 	constructor: ->
 
-		@panel = panel
+		@element = panel
 		@propLayers = []
 		@_props = {}
-		@frame = @panel.getBoundingClientRect()
+		@frame = @element.getBoundingClientRect()
 		@defaults = Framer.Device.screen._propertyList()
 
 		Object.defineProperty @,
@@ -831,7 +826,8 @@ class SpecPanel
 					if _.has(@props, key)
 						@props[key] = value
 
-		@panel.style.opacity = if startOpen then '1' else '0'
+		@element.style.opacity = if startOpen then '1' else '0'
+		@canvas = document.createElement('canvas')
 
 
 		# ------------------
@@ -997,11 +993,13 @@ class SpecPanel
 			unit: ''
 
 
+		new pDivider
+			parent: @filtersDiv
+
 		# ------------------------------------
 		# border properties
 
 		@borderPropertiesDiv = new pDiv
-
 
 		# ------------------
 		# border
@@ -1088,10 +1086,6 @@ class SpecPanel
 		# text styles
 
 		@textPropertiesDiv = new pDiv
-
-
-		new pDivider
-			parent: @textPropertiesDiv
 
 		# ------------------
 		# font family
@@ -1195,9 +1189,6 @@ class SpecPanel
 
 
 		@transformsDiv = new pDiv
-
-		new pDivider
-			parent: @transformsDiv
 
 		@transformsAcco = new pAccordian
 			text: 'Transforms'
@@ -1332,9 +1323,6 @@ class SpecPanel
 
 		@filtersDiv = new pDiv
 
-		new pDivider
-			parent: @filtersDiv
-
 		@filtersAcco = new pAccordian
 			parent: @filtersDiv
 			text: 'Filters'
@@ -1452,9 +1440,6 @@ class SpecPanel
 
 		@effectsDiv = new pDiv
 
-		new pDivider
-			parent: @effectsDiv
-
 		@effectsAcco = new pAccordian
 			text: 'Effects'
 			parent: @effectsDiv
@@ -1563,6 +1548,21 @@ class SpecPanel
 
 
 
+		# ------------------------------------
+		# animation properties
+
+
+		@animsDiv = new pDiv
+
+		# new pDivider
+		# 	parent: @animsDiv
+
+		@animsAcco = new pAccordian
+			text: 'Animations'
+			parent: @animsDiv
+
+
+
 		# image --------------------------------
 
 		@imagePropertiesDiv = new pDiv
@@ -1576,6 +1576,18 @@ class SpecPanel
 		@imageBox = new pImage
 			parent: @imagePropertiesDiv
 			section: @imagePropertiesDiv
+
+
+		# screenshot ---------------------------
+
+		@screenshotDiv = new pDiv
+
+		# ------------------
+		# screenshot
+
+		@screenshotBox = new pImage
+			parent: @screenshotDiv
+			section: @screenshotDiv
 
 
 		# ------------------
@@ -1613,7 +1625,184 @@ class SpecPanel
 
 		@hideDivs()
 		@clearProps()
+
+	showAnimations: (animations) =>
+		
+		@animsDiv.visible = animations.length > 0
 	
+		for child in @animsAcco.body.element.childNodes
+			if not child
+			 	continue
+
+			@animsAcco.body.element.removeChild(child)
+
+		Utils.delay 0, =>
+			for anim, i in animations
+
+				properties = anim.properties
+				options = anim.options
+				stateA = anim._stateA
+				stateB = anim._stateB
+
+				# --------------------------------
+				# animation
+
+				row = new pRow
+					parent: @animsAcco.body
+					text: 'Animation ' + (i + 1)
+
+				fromUnit = new pLabel
+					parent: row 
+					className: 'left'
+					text: 'from'
+
+				toUnit = new pLabel
+					parent: row 
+					className: 'right'
+					text: 'to'
+
+				for element in [fromUnit.element, toUnit.element]
+					element.classList.add('alignLeft')
+
+
+				# ---------------
+				# properties
+
+				for key, value of properties
+
+					switch key
+						when 'gradient'
+
+							row = new pRow
+								parent: @animsAcco.body
+								text: 'Grad Start'
+						
+							# from
+							box = new pInput
+								parent: row
+								className: 'left'
+								unit: ''
+								value: stateA[key].start
+								isDefault: false
+
+							# to
+							box = new pInput
+								parent: row
+								className: 'right'
+								unit: ''
+								value: stateB[key].start
+								isDefault: false
+
+							row = new pRow
+								parent: @animsAcco.body
+								text: 'Grad End'
+						
+							# from
+							box = new pInput
+								parent: row
+								className: 'left'
+								unit: ''
+								value: stateA[key].end
+								isDefault: false
+
+							# to
+							box = new pInput
+								parent: row
+								className: 'right'
+								unit: ''
+								value: stateB[key].end
+								isDefault: false
+
+							row = new pRow
+								parent: @animsAcco.body
+								text: 'Grad Angle'
+						
+							# from
+							box = new pInput
+								parent: row
+								className: 'left'
+								unit: ''
+								value: stateA[key].angle
+								isDefault: false
+
+							# to
+							box = new pInput
+								parent: row
+								className: 'right'
+								unit: ''
+								value: stateB[key].angle
+								isDefault: false
+
+						else
+
+							row = new pRow
+								parent: @animsAcco.body
+								text: _.startCase(key)
+
+							# from
+							box = new pInput
+								parent: row
+								className: 'left'
+								unit: ''
+								value: stateA[key]
+								isDefault: false
+
+							# to
+							box = new pInput
+								parent: row
+								className: 'right'
+								unit: ''
+								value: stateB[key]
+								isDefault: false
+
+				# ---------------
+				# options
+
+				row = new pRow
+					parent: @animsAcco.body
+					text: 'Options'
+
+				# time
+				box = new pInput
+					parent: row
+					className: 'left'
+					unit: 's'
+					value: options.time
+					isDefault: false
+
+				# time
+				box = new pInput
+					parent: row
+					className: 'right'
+					unit: 'd'
+					value: options.delay
+					isDefault: false
+
+				row = new pRow
+					parent: @animsAcco.body
+					text: ''
+
+				# repeat
+				box = new pInput
+					parent: row
+					className: 'left'
+					unit: 'r'
+					value: options.repeat
+					isDefault: false
+
+				# time
+				box = new pInput
+					parent: row
+					className: 'right'
+					unit: 'l'
+					value: options.looping
+					isDefault: false
+
+				unless i is animations.length - 1
+					new pDivider
+						parent: @animsAcco.body
+
+		
 	showProperties: (layer, customProps) =>
 
 		props = layer.props
@@ -1637,7 +1826,6 @@ class SpecPanel
 			def = defaults[key]?.default
 			
 			@showProperty(key, value, propLayer, def)
-
 
 	showProperty: (key, value, propLayer, def) =>
 
@@ -1680,7 +1868,8 @@ class SpecPanel
 			@filtersDiv,
 			@transformsDiv,
 			@borderPropertiesDiv,
-			@effectsDiv
+			@effectsDiv,
+			@screenshotDiv
 		]
 		
 			div.visible = false
@@ -1691,7 +1880,6 @@ class SpecPanel
 
 
 
- # -------------------------------------------
 
 
 ### -------------------------------------------
@@ -1778,7 +1966,7 @@ class Gotcha
 	# open the panel, start listening for events
 	enable: =>
 		@_canvasColor = Canvas.backgroundColor
-		ctx.setContext()
+		svgContext.setContext()
 
 		@transition(true)
 
@@ -1839,7 +2027,7 @@ class Gotcha
 			true
 		)
 
-		@specPanel.panel.style.opacity = opacity
+		@specPanel.element.style.opacity = opacity
 		Canvas.backgroundColor = Color.mix @_canvasColor,'rgba(30, 30, 30, 1.000)', factor
 
 	# update when screen size changes
@@ -1848,7 +2036,7 @@ class Gotcha
 
 		Framer.Device.hands.midX -= 122
 
-		ctx.setContext()
+		svgContext.setContext()
 		@focus()
 
 	# get the dimensions of an element
@@ -1916,7 +2104,7 @@ class Gotcha
 
 		label = new SVGShape
 			type: 'text'
-			parent: ctx
+			parent: svgContext
 			x: x
 			y: y
 			'font-family': @fontFamily
@@ -1932,7 +2120,7 @@ class Gotcha
 
 		box = new SVGShape
 			type: 'rect'
-			parent: ctx
+			parent: svgContext
 			x: label.x - @padding.left
 			y: label.y - l.height + 1
 			width: l.width + @padding.left + @padding.right
@@ -1956,7 +2144,7 @@ class Gotcha
 
 		hoveredRect = new SVGShape
 			type: 'rect'
-			parent: ctx
+			parent: svgContext
 			x: h.x
 			y: h.y
 			width: h.width
@@ -1972,7 +2160,7 @@ class Gotcha
 
 		selectedRect = new SVGShape
 			type: 'rect'
-			parent: ctx
+			parent: svgContext
 			x: s.x
 			y: s.y
 			width: s.width
@@ -2197,6 +2385,9 @@ class Gotcha
 			@specPanel.clearProps()
 			return
 
+		return if layer is @lastLayer
+		@lastLayer = layer
+		
 		# properties to assigned to layer.props
 		customProps =
 			x: layer.screenFrame.x
@@ -2207,6 +2398,7 @@ class Gotcha
 			rotation: layer.rotationZ
 			textAlign: layer.props.styledTextOptions?.alignment
 			blending: layer.blending
+			# screenshot: @getScreenshot(layer._element)
 		
 		if layer.gradient?
 			_.assign customProps,
@@ -2225,6 +2417,10 @@ class Gotcha
 
 		@specPanel.showProperties(layer, customProps)
 
+		animations = layer.animations()
+
+		@specPanel.showAnimations(animations)
+
 
 	setHoveredLayer: (event) =>
 		return if not @enabled
@@ -2233,6 +2429,7 @@ class Gotcha
 		return if not @getLayerIsVisible(layer)
 
 		@hoveredLayer = layer
+
 		@tryFocus(event)
 		return false
 
@@ -2282,6 +2479,30 @@ class Gotcha
 
 		@getLayerIsVisible(layer.parent)
 
+	getScreenshot: (element) =>
+
+		foreignObject = new SVGShape
+			type: 'foreignObject'
+
+		# element = document.getElementsByClassName('framerLayer DeviceComponentPort')[0]
+		
+		rect = element.getBoundingClientRect()
+		ctx = @specPanel.canvas.getContext('2d');
+
+		data = "<svg xmlns='http://www.w3.org/2000/svg' width='#{rect.width}' height='#{rect.height}'>" +
+			'<foreignObject width="100%" height="100%">' +
+			'<div xmlns="http://www.w3.org/1999/xhtml">' +
+			element.innerHTML +
+			'</div>' +
+			'</foreignObject>' +
+			'</svg>'
+
+		DOMURL = window.URL or window.webkitURL or window
+
+		svg = new Blob([data], {type: 'image/svg+xml'})
+		url = DOMURL.createObjectURL(svg)
+		@specPanel.screenshotBox.value = url
+
 
 	# Find a non-standard Component that includes a Layer
 	getComponentFromLayer: (layer, names = []) =>
@@ -2319,9 +2540,10 @@ class Gotcha
 		@showDistances()
 
 	unfocus: (event) =>
-		ctx.removeAll()
+		svgContext.removeAll()
 
 
+# kickoff
 
 panel = document.createElement('div')
 panel.id = 'pContainer'
@@ -2332,6 +2554,6 @@ secretBox = document.createElement('input')
 document.body.appendChild(secretBox)
 
 
-ctx = new SVGContext
+svgContext = new SVGContext
 
 exports.gotcha = gotcha = new Gotcha
