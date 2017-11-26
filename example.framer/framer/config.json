@@ -2,21 +2,29 @@
   "orientation" : 0,
   "updateDelay" : 0.29999999999999999,
   "designModeSelected" : 0,
-  "cachedDeviceHeight" : 812,
+  "cachedDeviceHeight" : 1024,
   "contentScale" : 2,
   "fullScreen" : false,
-  "cachedDeviceWidth" : 375,
-  "deviceType" : "apple-iphone-x-silver",
+  "cachedDeviceWidth" : 768,
+  "deviceType" : "apple-ipad-mini-4-silver",
   "sharedPrototype" : true,
   "propertyPanelToggleStates" : {
-    "Filters" : false
+    "Filters" : true
   },
   "projectId" : "19FADA68-0983-4D23-BDE8-BD7713234240",
   "deviceOrientation" : 0,
   "selectedHand" : "",
   "showBezel" : true,
   "foldedCodeRanges" : [
-
+    "{96, 647}",
+    "{744, 607}",
+    "{1352, 1247}",
+    "{2613, 547}",
+    "{3161, 486}",
+    "{3648, 200}",
+    "{3849, 203}",
+    "{4053, 203}",
+    "{4257, 216}"
   ],
   "deviceScale" : "fit"
 }

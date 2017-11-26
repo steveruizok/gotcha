@@ -5,6 +5,7 @@ require "gotcha"
 
 Screen.backgroundColor = '#000'
 
+
 # components
 
 # BulletItem
@@ -89,7 +90,7 @@ title = new TextLayer
 	fontFamily: 'Helvetica'
 	text: 'Gotcha'
 	letterSpacing: 1.5
-	
+
 ok_hand.props =
 	x: title.maxX + 16
 	midY: title.midY
@@ -150,6 +151,11 @@ slides.brightness = 0
 lowscrim.gradient =
 	start: 'rgba(0,0,0,.7)'
 	end: 'rgba(0,0,0,0)'
+	
+layer = new Layer
+	borderColor: '#FFF'
+	borderStyle: 'dotted'
+	borderWidth: 2
 
 # Functions
 
@@ -313,4 +319,3 @@ showSteps5 = ->
 getStarted.action = showSteps1
 
 start()
-
