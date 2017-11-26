@@ -1,22 +1,30 @@
 {
   "orientation" : 0,
-  "updateDelay" : 0.29999999999999999,
+  "updateDelay" : 0.3,
   "designModeSelected" : 0,
-  "cachedDeviceHeight" : 812,
+  "cachedDeviceHeight" : 1024,
   "contentScale" : 2,
   "fullScreen" : false,
-  "cachedDeviceWidth" : 375,
-  "deviceType" : "apple-iphone-x-silver",
+  "cachedDeviceWidth" : 768,
+  "deviceType" : "apple-ipad-air-2-gold",
   "sharedPrototype" : true,
   "propertyPanelToggleStates" : {
-    "Filters" : false
+    "Filters" : true
   },
   "projectId" : "19FADA68-0983-4D23-BDE8-BD7713234240",
   "deviceOrientation" : 0,
   "selectedHand" : "",
   "showBezel" : true,
   "foldedCodeRanges" : [
-
+    "{96, 647}",
+    "{744, 671}",
+    "{1416, 1169}",
+    "{2599, 547}",
+    "{3147, 486}",
+    "{3634, 200}",
+    "{3835, 203}",
+    "{4039, 203}",
+    "{4243, 216}"
   ],
   "deviceScale" : "fit"
 }

@@ -11,6 +11,22 @@
 #
 # A Framer module for handoff. It works kind of like that other tool.
 
+# Todo:
+# - add (open) accordian section for text styles
+# - text styles should only be visible when hovering a text layer
+# - clean up fields without values
+# - add hasText events to input, etc
+# - add section for layer names
+# - add property calls for remaining properties
+
+deviceType = window.localStorage.deviceType
+
+if deviceType? 
+	device = Framer.DeviceComponent.Devices[deviceType]
+	Framer.Device._context.devicePixelRatio = device.devicePixelRatio
+
+	Framer.Device.deviceType = deviceType
+	window.localStorage.device = undefined
 
 Framer.Extras.Hints.disable()
 
@@ -20,64 +36,17 @@ ctx = undefined
 startOpen = false
 
 # debugging
-# document.addEventListener 'click', (event) -> print event.target.classList
 
 document.getElementsByClassName('DevicePhone')[0]?.classList.add('IgnorePointerEvents')
 
 
 Utils.insertCSS """
-	
-	#SpecContainer {
-		position: absolute;
-		right: 0;
-		top: 0;
-		bottom: 0;
-		width: 224px;
-		background-color: rgba(20, 20, 20, 1.000);
-		border-left: 1px solid rgba(45, 45, 45, 1.000);
-		pointer-events: all;
-		white-space: nowrap;
-		cursor: default;
-	}
 
-	.SpecLabel {
-		position: absolute;
-	}
-
-	.SpecSelectable {
-		cursor: pointer;
-		-webkit-box-sizing: border-box;
-		-moz-box-sizing: border-box;
-		box-sizing: border-box;
-	}
-
-	.SpecSelectable:hover {
-		outline: 1px solid rgba(72, 207, 255, 1.000) !important;
-	}
-
-	.SpecSelectable:active {
-		outline: 1px solid rgba(255, 1, 255, 1.000) !important;
-	}
-
-	@-webkit-keyframes showCopied {
-		0% { 
-			border-color: rgba(118, 237, 93, 1.000);
-		}
-
-		100% {
-			border-color: rgba(0, 0, 0, 1.000);
-		}
-	}
-
-	.copied {
-		background-color: red;
-	}
-
-	.mememeLink {
+	.logo {
 		opacity: .4;
 	}
 
-	.mememeLink:hover {
+	.logo:hover {
 		opacity: 1;
 	}
 	
@@ -113,62 +82,22 @@ Utils.insertCSS """
 	}
 """
 
-# -------------------------------------------
 
-# 	 888888ba                             dP
-# 	 88    `8b                            88
-# 	a88aaaa8P' .d8888b. 88d888b. .d8888b. 88
-# 	 88        88'  `88 88'  `88 88ooood8 88
-# 	 88        88.  .88 88    88 88.  ... 88
-# 	 dP        `88888P8 dP    dP `88888P' dP
-# 	
-# 	
+### -------------------------------------------
 
-
-panel = document.createElement('div')
-panel.id = 'SpecContainer'
-viewC = document.getElementById('FramerContextRoot-Default')
-Utils.delay 0, => viewC.appendChild(panel)
-
-
- # -------------------------------------------
-
-# 	.d88888b                                        dP    888888ba
-# 	88.    "'                                       88    88    `8b
-# 	`Y88888b. .d8888b. .d8888b. 88d888b. .d8888b. d8888P a88aaaa8P' .d8888b. dP.  .dP
-# 	      `8b 88ooood8 88'  `"" 88'  `88 88ooood8   88    88   `8b. 88'  `88  `8bd8'
-# 	d8'   .8P 88.  ... 88.  ... 88       88.  ...   88    88    .88 88.  .88  .d88b.
-# 	 Y88888P  `88888P' `88888P' dP       `88888P'   dP    88888888P `88888P' dP'  `dP
-# 	
-# 	
-
-secretBox = document.createElement('input')
-document.body.appendChild(secretBox)
-
-
- # -------------------------------------------
-
-
- # 	.d88888b  dP     dP  .88888.      a88888b.                                                                    dP
- # 	88.    "' 88     88 d8'   `88    d8'   `88                                                                    88
- # 	`Y88888b. 88    .8P 88           88        .d8888b. 88d8b.d8b. 88d888b. .d8888b. 88d888b. .d8888b. 88d888b. d8888P .d8888b.
- # 	      `8b 88    d8' 88   YP88    88        88'  `88 88'`88'`88 88'  `88 88'  `88 88'  `88 88ooood8 88'  `88   88   Y8ooooo.
- # 	d8'   .8P 88  .d8P  Y8.   .88    Y8.   .88 88.  .88 88  88  88 88.  .88 88.  .88 88    88 88.  ... 88    88   88         88
- # 	 Y88888P  888888'    `88888'      Y88888P' `88888P' dP  dP  dP 88Y888P' `88888P' dP    dP `88888P' dP    dP   dP   `88888P'
- # 	                                                               88
- # 	                                                               dP
-
-
-
-###
-	 ,-.  .   ,  ,-.  ,-.         .           .
-	(   ` |  /  /    /            |           |
-	 `-.  | /   | -. |    ,-. ;-. |-  ,-. . , |-
-	.   ) |/    \  | \    | | | | |   |-'  X  |
-	 `-'  '      `-'  `-' `-' ' ' `-' `-' ' ` `-'
-	
+  	.d88888b  dP     dP  .88888.      a88888b.                                                                    dP
+  	88.    "' 88     88 d8'   `88    d8'   `88                                                                    88
+  	`Y88888b. 88    .8P 88           88        .d8888b. 88d8b.d8b. 88d888b. .d8888b. 88d888b. .d8888b. 88d888b. d8888P .d8888b.
+  	      `8b 88    d8' 88   YP88    88        88'  `88 88'`88'`88 88'  `88 88'  `88 88'  `88 88ooood8 88'  `88   88   Y8ooooo.
+  	d8'   .8P 88  .d8P  Y8.   .88    Y8.   .88 88.  .88 88  88  88 88.  .88 88.  .88 88    88 88.  ... 88    88   88         88
+  	 Y88888P  888888'    `88888'      Y88888P' `88888P' dP  dP  dP 88Y888P' `88888P' dP    dP `88888P' dP    dP   dP   `88888P'
+  	                                                               88
+  	                                                               dP
 ###
 
+
+# ---------------------
+# SVG Context
 
 class SVGContext
 	constructor: (options = {}) ->
@@ -258,16 +187,8 @@ class SVGContext
 			@svg.removeChild(shape.element)
 		@shapes = []
 
-
-###
-	 ,-.  .   ,  ,-.  ,-.  .                                                                                                                             . ;-.
-	(   ` |  /  /    (   ` |                                                                                                                             | |  )
-	 `-.  | /   | -.  `-.  |-. ,-: ;-. ,-.                                                                                                             ,-| |-'
-	.   ) |/    \  | .   ) | | | | | | |-'                                                                                                             | | |
-	 `-'  '      `-'  `-'  ' ' `-` |-' `-'                                                                                                             `-' '
-	                               '
-###
-
+# ---------------------
+# SVG Shape
 
 class SVGShape
 	constructor: (options = {type: 'circle'}) ->
@@ -321,6 +242,8 @@ class SVGShape
 	remove: ->
 		@parent.removeShape(@)
 
+# ---------------------
+# Dashed Line
 
 class DashedLine extends SVGShape
 	constructor: (pointA, pointB, color = '#000', offset = 0, options = {}) ->
@@ -336,336 +259,568 @@ class DashedLine extends SVGShape
 		super options
 
 
-ctx = new SVGContext
+# ----------------------------------------
+# Panel Components
 
+Utils.insertCSS """
 
+	#pContainer {
+		position: fixed;
+		right: 0;
+		width: 224px;
+		height: 100%;
+		font-family: 'Helvetica Neue';
+		font-size: 11px;
+		background-color: rgba(20, 20, 20, 1.000);
+		border-left: 1px solid rgba(45, 45, 45, 1.000);
+		pointer-events: all;
+		white-space: nowrap;
+		cursor: default;
+		overflow: scroll;
+		padding-top: 8px;
+	}
 
- # -------------------------------------------
+	.pDiv {
+		display: block;
+		width: 100%;
+	}
 
+	.hidden {
+		display: none;
+	}
 
+	.pRow {
+		width: 100%;
+		height: 32px;
+	}
 
-# 	 888888ba                             dP     a88888b.                                                                    dP
-# 	 88    `8b                            88    d8'   `88                                                                    88
-# 	a88aaaa8P' .d8888b. 88d888b. .d8888b. 88    88        .d8888b. 88d8b.d8b. 88d888b. .d8888b. 88d888b. .d8888b. 88d888b. d8888P .d8888b.
-# 	 88        88'  `88 88'  `88 88ooood8 88    88        88'  `88 88'`88'`88 88'  `88 88'  `88 88'  `88 88ooood8 88'  `88   88   Y8ooooo.
-# 	 88        88.  .88 88    88 88.  ... 88    Y8.   .88 88.  .88 88  88  88 88.  .88 88.  .88 88    88 88.  ... 88    88   88         88
-# 	 dP        `88888P8 dP    dP `88888P' dP     Y88888P' `88888P' dP  dP  dP 88Y888P' `88888P' dP    dP `88888P' dP    dP   dP   `88888P'
-# 	                                                                          88
-# 	                                                                          dP
+	.pSpan {
+		position: absolute;
+		color: #888888;
+		font-weight: 400;
+		letter-spacing: .5px;
+		padding-left: 8px;
+		margin-top: 2px;
+	}
 
+	.pLabel {
+		position: absolute;
+		text-align: right;
+		font-size: 10px;
+		width: none;
+		margin-top: 2px;
+		margin-right: 8px;
+		z-index: 10;
+		pointer-events: none;
+	}
 
+	.pInput {
+		background-color: #292929;
+		border: 1px solid #000;
+		color: #555555;
+		padding: 4px;
+		position: absolute;
+		border-radius: 4px;
+		outline: none;
+		margin-top: 4px;
+	}
 
-###
-	 ,-.              ,--. .                   .
-	(   `             |    |                   |
-	 `-.  ;-. ,-. ,-. |-   | ,-. ;-.-. ,-. ;-. |-
-	.   ) | | |-' |   |    | |-' | | | |-' | | |
-	 `-'  |-' `-' `-' `--' ' `-' ' ' ' `-' ' ' `-'
-	      '
-###
+	.pInput:hover {
+		border: 1px solid #48cfff;
+		color: #48cfff;
+	}
 
+	.right {
+		right: 8px;
+		width: 48px;
+	}
 
-class SpecElement
-	constructor: (className, options = {}, text) ->
+	.left {
+		right: 72px;
+		width: 48px;
+	}
+
+	.full {
+		right: 8px;
+		width: 112px;
+	}
+
+	.pImage {
+		display: block;
+		margin-left: 8px;
+		height: auto;
+		width: 208px;
+		overflow: hidden;
+		background-color: #292929;
+		border: 1px solid #000;
+		border-radius: 4px;
+		outline: 4px solid #292929;
+		outline-offset: -4px;
+	}
+
+	.pImage:hover {
+		border: 1px solid #48cfff;
+		color: #48cfff;
+		outline: 2px solid #292929;
+	}
+
+	.pColor {
+		outline: 4px solid #292929;
+		outline-offset: -4px;
+	}
+
+	.pColor:hover {
+		outline: 2px solid #292929;
+		color: #48cfff;
+	}
+
+	.pSelect {
+		position: absolute;
+		right: 8px;
+		width: 122px;
+		color: #555555;
+		background-color: #292929;
+		-webkit-appearance: none;
+		border: 1px solid #000;
+		padding: 4px;
+		border-radius: 4px;
+		outline: none;
+	}
+
+	.pDivider {
+		height: 1px;
+		background-color: #000;
+		margin: 16px 8px 16px 8px;
+	}
+
+	.pAccordian {
+		border-top: 1px solid #000;
+		border-bottom: 1px solid #000;
+		height: auto;
+		min-height: 32px;
+		background-color: #1D1D1D;
+	}
+
+	.pAccordianBody {
+		display: none;
+		height: auto;
+		margin-top: 32px;
+		padding-top: 4px;
+		background-color: #141414;
+	}
+
+	.active {
+		display: block;
+		height: auto;
+	}
+
+	.hasValue {
+		color: #FFF;
+	}
+
+	.socialLinks {
+		background-color: #141414;
+		position: fixed;
+		bottom: 0px;
+		right: 0px;
+		padding-top: 4px;
+		z-index: 100;
+	}
+
+"""
+
+# ---------------------
+# Div
+
+class pDiv
+	constructor: (options = {}) ->
+
+		_.defaults options,
+			parent: undefined
+
 		@element = document.createElement('div')
-		@element.classList.add className
-		@element.classList.add 'SpecElement'
-
-		_.assign @element.style, options
-
-		panel.appendChild(@element)
-
-		@rootElement = @element
+		@element.classList.add("pDiv")
+		parent = options.parent?.element ? panel
+		parent.appendChild(@element)
 
 
-###
-	 ,-.              ,        .       .
-	(   `             |        |       |
-	 `-.  ;-. ,-. ,-. |    ,-: |-. ,-. |
-	.   ) | | |-' |   |    | | | | |-' |
-	 `-'  |-' `-' `-' `--' `-` `-' `-' '
-	      '
-###
+		Object.defineProperty @,
+			"visible",
+			get: -> return @_visible
+			set: (bool) ->
+				return if bool is @_visible
+
+				@_visible = bool
+
+				if bool
+					@element.classList.remove('hidden')
+					return
+
+				@element.classList.add('hidden')
 
 
-class SpecLabel extends SpecElement
+# ---------------------
+# Row
+
+class pRow extends pDiv
 	constructor: (options = {}) ->
 
 		_.defaults options,
-			'position': 'absolute'
-			'top': '8px'
-			'background-color': 'none'
-			'font-family': 'Helvetica Neue'
-			'font-size': '1em'
-			'font-weight': '400'
-			'color': 'rgba(136, 136, 136, 1.000)'
-
-		super 'SpecLabel', options
-
-		@textLayer = new SpecElement 'SpecLabel',
-			'font-family': options['font-family'] ? 'Helvetica Neue'
-			'font-size': options['font-size'] ? '1em'
-			'font-weight': options['font-weight'] ? '500'
-			'color': options['color'] ? 'rgba(136, 136, 136, 1.000)'
-			'left': options.left
-			'right': options.right
-
-		@element.appendChild @textLayer.element
-
-		options.parent?.appendChild(@element)
-
-		Object.defineProperty @, 
-			'text',
-			get: -> return @textLayer.element.textContent
-			set: (value) ->
-				if typeof value is 'number' then value = value.toFixed()
-				@textLayer.element.textContent = value
-
-		@text = options.text ? ''
-
-###
-	 ,-.              ,-.            .
-	(   `             |  \ o     o   |
-	 `-.  ;-. ,-. ,-. |  | . . , . ,-| ,-. ;-.
-	.   ) | | |-' |   |  / | |/  | | | |-' |
-	 `-'  |-' `-' `-' `-'  ' '   ' `-' `-' '
-	      '
-###
-
-
-class SpecDivider extends SpecElement
-	constructor: (options = {}) ->
-
-		_.defaults options,
-			'position': 'absolute'
-			'top': '8px'
-			'left': '8px'
-			'width': '208px'
-			'height': '1px'
-			'background-color': '#000'
-			'border': '.5px solid #000'
-			'border-radius': '2px'
-			'box-sizing': 'border-box'
-
-		super 'SpecDivider', options
-
-###
-	 ,-.              ,-.
-	(   `             |  )
-	 `-.  ;-. ,-. ,-. |-<  ,-. . ,
-	.   ) | | |-' |   |  ) | |  X
-	 `-'  |-' `-' `-' `-'  `-' ' `
-	      '
-###
-
-
-class SpecBox extends SpecElement
-	constructor: (options = {}) ->
-
-		_.assign @,
-			value: undefined
-
-		_.defaults options,
-			'position': 'absolute'
-			'top': '8px'
-			'left': '96px'
-			'width': '64px'
-			'height': '24px'
-			'background-color': 'rgba(41, 41, 41, 1.000)'
-			'border': '.5px solid #000'
-			'border-radius': '2px'
-			'box-sizing': 'border-box'
-			'box-shadow': 'inset 0px 0px 0px 4px rgba(41, 41, 41, 1.000)'
-
-		super 'SpecLabel', options
-
-
-###
-
-	 ,-.               ,-.     .         .   ,     .         ,-.
-	(   `             /        |         |  /      |         |  )
-	 `-.  ;-. ,-. ,-. |    ,-. | ,-. ;-. | /   ,-: | . . ,-. |-<  ,-. . ,
-	.   ) | | |-' |   \    | | | | | |   |/    | | | | | |-' |  ) | |  X
-	 `-'  |-' `-' `-'  `-' `-' ' `-' '   '     `-` ' `-` `-' `-'  `-' ' `
-	      '
-###
-
-class SpecColorValueBox extends SpecBox
-	constructor: (options = {}) ->
-
-		_.defaults options,
-			'position': 'absolute'
-			'top': '8px'
-			'left': '96px'
-			'width': '64px'
-			'height': '24px'
-			'background-color': 'rgba(41, 41, 41, 1.000)'
-			'border': '.5px solid #000'
-			'border-radius': '2px'
-			'box-sizing': 'border-box'
-			'box-shadow': 'inset 0px 0px 0px 4px rgba(41, 41, 41, 1.000)'
+			text: 'Label'
 
 		super options
+
+		@element.classList.remove("pDiv")
+		@element.classList.add("pRow")
+
+		@label = new pSpan
+			parent: @
+			text: options.text
+
+# ---------------------
+# Divider
+
+class pDivider
+	constructor: (options = {}) ->
+
+		_.defaults options,
+			parent: undefined
+
+		@element = document.createElement('div')
+		@element.classList.add("pDivider")
+
+		parent = options.parent?.element ? panel
+		parent.appendChild(@element)
+
+# ---------------------
+# Span
+
+class pSpan
+	constructor: (options = {}) ->
+
+		_.defaults options,
+			parent: undefined
+			text: 'hello world'
+
+		@element = document.createElement('span')
+		@element.classList.add("pSpan")
+		@element.textContent = options.text
+
+		parent = options.parent?.element ? panel
+		parent.appendChild(@element)
+
+# ---------------------
+# Label
+
+class pLabel
+	constructor: (options = {}) ->
+
+		_.defaults options,
+			parent: undefined
+			className: null
+			text: 'x'
+			for: undefined
+
+		@element = document.createElement('label')
+		@element.classList.add("pLabel")
+		@element.classList.add(options.className)
+		
+		_.assign @element,
+			textContent: options.text
+			for: options.for
+
+		parent = options.parent?.element ? panel
+		parent.appendChild(@element)
+
+# ---------------------
+# Input
+
+class pInput
+	constructor: (options = {}) ->
+
+		_.defaults options,
+			parent: null
+			className: 'left'
+			value: ''
+			unit: 'x'
+			default: ''
+			section: undefined
+
+		@element = document.createElement('input')
+		@element.classList.add("pInput")
+		@element.classList.add(options.className)
+
+		parent = options.parent?.element ? panel
+		parent.appendChild(@element)
+
+		@unit = new pLabel
+			parent: options.parent
+			className: options.className
+			text: options.unit
+			for: @element
 
 		Object.defineProperty @, 
 			'value',
 			get: -> return @_value
-			set: (value) => 
+			set: (value) ->
 				@_value = value
-				@element.style['background-color'] = value ? 'rgba(41, 41, 41, 1.000)'
+				if not value? or value is ""
+					value = String(@default)
 
-				if value? and value isnt ''
-					if @element.classList.contains('SpecSelectable')
-						return
+				@element.value = value
 
-					@element.classList.add('SpecSelectable')
+				Utils.delay 0, =>
+					if value? and not @isDefault and value isnt ""
+						@section?.visible = true
 
-				else if @element.classList.contains('SpecSelectable')
-					@element.classList.remove('SpecSelectable')
+		Object.defineProperty @, 
+			'isDefault',
+			get: -> return @_isDefault
+			set: (bool) ->
+				@_isDefault = bool
 
-		@value = options.value
+				if bool
+					@element.classList.remove('hasValue')
+					return
 
-
-###
-	 ,-.              .   ,     .         ,-.
-	(   `             |  /      |         |  )
-	 `-.  ;-. ,-. ,-. | /   ,-: | . . ,-. |-<  ,-. . ,
-	.   ) | | |-' |   |/    | | | | | |-' |  ) | |  X
-	 `-'  |-' `-' `-' '     `-` ' `-` `-' `-'  `-' ' `
-	      '
-###
+				@.element.classList.add('hasValue')
 
 
-class SpecValueBox extends SpecBox
+		@element.addEventListener 'click', =>
+			if not secretBox
+				return
+
+			secretBox.value = @value
+			secretBox.select()
+			document.execCommand('copy')
+			secretBox.blur()
+
+		_.assign @,
+			value: options.value
+			default: options.default
+			section: options.section
+
+# ---------------------
+# Image
+
+class pImage
 	constructor: (options = {}) ->
 
 		_.defaults options,
-			'font-family': 'Helvetica Neue'
-			'font-size': '.42em'
-			'padding-top': '5px'
-			'padding-left': '8px'
-			'box-sizing': 'border-box'
-			'line-height': '1em'
-			'overflow': 'hidden'
+			parent: null
+			value: ''
+			unit: ''
+			section: undefined
 
-		super options
+		@element = document.createElement('img')
+		@element.classList.add("pImage")
 
-		@valueLabel = new SpecLabel
-			text: options.text ? ''
-			parent: @element
-			'font-size': '1em'
-			'left': '6px'
-			'top': '6px'
-			'color': '#FFF'
-			'font-weight': '500'
-
-		@unitLabel = new SpecLabel
-			text: options.unit ? ''
-			parent: @element
-			'font-size': '.9em'
-			'right': '2px'
-			'top': '6px'
-			'text-align': 'right'
-
+		parent = options.parent?.element ? panel
+		parent.appendChild(@element)
 
 		Object.defineProperty @, 
 			'value',
-			get: -> return @valueLabel.element.textContent
-			set: (value) -> 
+			get: -> return @_value
+			set: (value) ->
 				@_value = value
-				@valueLabel.element.textContent = value
-
-				if value? and value isnt ''
-					if @element.classList.contains('SpecSelectable')
-						return
-
-					@element.classList.add('SpecSelectable')
-
-				else if @element.classList.contains('SpecSelectable')
-					@element.classList.remove('SpecSelectable')
-
-		@value = options.value ? ''
+				@element.src = value
+				@section?.visible = value isnt ''
 
 
-###
-	 ,-.              ,   .     .     .   ,     .         ,-.
-	(   `             | . | o   |     |  /      |         |  )
-	 `-.  ;-. ,-. ,-. | ) ) . ,-| ,-. | /   ,-: | . . ,-. |-<  ,-. . ,
-	.   ) | | |-' |   |/|/  | | | |-' |/    | | | | | |-' |  ) | |  X
-	 `-'  |-' `-' `-' ' '   ' `-' `-' '     `-` ' `-` `-' `-'  `-' ' `
-	      '
-###
+		@element.addEventListener 'click', =>
+			if not secretBox
+				return
 
+			secretBox.value = @value
+			secretBox.select()
+			document.execCommand('copy')
+			secretBox.blur()
 
-class SpecWideValueBox extends SpecValueBox
-	constructor: (options = {}) ->
-		super options
+		_.assign @,
+			value: options.value
+			section: options.section
 
-		@element.style.width = '136px'
+# ---------------------
+# Color Box
 
-# Spec Dropdown Box
-
-class SpecDropdownBox extends SpecWideValueBox
+class pColor
 	constructor: (options = {}) ->
 
 		_.defaults options,
-			options: [
-				{name: 'Blue', value: 'blue'}, 
-				{name: 'Red', value: 'red'}
-				{name: 'Green', value: 'green'}
-			]
-			callback: (value) -> null
+			parent: null
+			value: '#292929'
+
+		@element = document.createElement('input')
+		@element.classList.add("pInput")
+		@element.classList.add('pColor')
+		@element.classList.add(options.className)
+
+		parent = options.parent?.element ? panel
+		parent.appendChild(@element)
+
+		Object.defineProperty @, 
+			'value',
+			get: -> return @_value
+			set: (value) ->
+
+				if value?.color is 'transparent'
+					value = null
+
+				if value? and value isnt ''
+					@section?.visible = true
+
+				@_value = value
+				@element.style['background-color'] = value
+
+		@element.addEventListener 'click', =>
+			if not secretBox
+				return
+
+			secretBox.value = @value
+			secretBox.select()
+			document.execCommand('copy')
+			secretBox.blur()
+
+		_.assign @,
+			value: options.value
+			section: options.section
+
+# ---------------------
+# Select
+
+class pSelect
+	constructor: (options = {}) ->
+
+		_.defaults options,
+			parent: undefined
 			selected: 0
+			options: ['red', 'white', 'blue']
+			callback: (value) -> null
+
+		@element = document.createElement('select')
+		@element.classList.add("pSelect")
+		@element.classList.add('hasValue')
+
+		@unit = new pLabel
+			parent: options.parent
+			className: 'right'
+			text: '▾'
+			for: @element
+
+		parent = options.parent?.element ? panel
+		parent.appendChild(@element)
+
+		Object.defineProperty @,
+			'options',
+			get: -> return @_options
+			set: (array) ->
+				@_options = array
+				@makeOptions()
+
+		Object.defineProperty @,
+			'selected',
+			get: -> return @_selected
+			set: (num) ->
+				@_selected = num
+
+		_.assign @,
+			_options: []
+			_optionElements: []
+			options: options.options
+			callback: options.callback
+			selected: options.selected
+
+		@element.selectedIndex = options.selected
+
+		@element.onchange = => 
+			@selected = @element.selectedIndex
+			@callback(@element.selectedIndex)
+		
+
+	makeOptions: =>
+		for option, i in @_optionElements
+			@element.removeChild(option)
+
+		@_optionElements = []
+
+		for option, i in @options
+			o = document.createElement('option')
+			o.value = option
+			o.label = option
+			o.innerHTML = option
+			@element.appendChild(o)
+
+			@_optionElements.push(o)
+
+			if i is @selected
+				@value = @element.options[@element.selectedIndex].label
+
+# ---------------------
+# Accordian
+
+class pAccordian extends pRow
+	constructor: (options = {}) ->
 
 		super options
+		@element.classList.add('pAccordian')
+		@element.addEventListener "click", @toggle
 
-		@callback = options.callback
+		_.assign @,
+			toggled: false
 
-		@element.style.width = '136px'
+		@unit = new pLabel
+			parent: @
+			className: 'right'
+			text: '▿'
+			for: @element
 
-		@select = document.createElement('select')
-		@select.classList.add('dropdown')
-		@element.appendChild(@select)
-		@select.onchange = @setSelectValue
+		@body = new pRow
+			parent: @
+			text: ''
+		@body.element.removeChild(@body.label.element)
 
-		for option, i in options.options
-			o = document.createElement('option')
-			o.value = option.value
-			o.label = option.name
-			o.innerHTML = o.name
-			@select.appendChild(o)
+		@element.appendChild(@body.element)
+		@body.element.classList.add('pAccordianBody')
 
-			if i is options.selected
-				o.selected = true
-				@value = @select.options[@select.selectedIndex].label
+		@body.element.addEventListener 'click', (event) -> 
+			event.stopPropagation()
 
-	setSelectValue: =>
-		@value = @select.options[@select.selectedIndex].label
-		do _.bind(@callback, @select)
+		@toggle() # start open
+
+	toggle: =>
+		@toggled = !@toggled
+
+		if @toggled
+			@body.element.classList.add('active')
+			@unit.element.textContent = '▾'
+			return
+
+		if @body.element.classList.contains('active')
+			@body.element.classList.remove('active')
+			@unit.element.textContent = '▿'
 
 
+### -------------------------------------------
 
- # -------------------------------------------
-
+ 	.d88888b                                 888888ba                             dP
+ 	88.    "'                                88    `8b                            88
+ 	`Y88888b. 88d888b. .d8888b. .d8888b.    a88aaaa8P' .d8888b. 88d888b. .d8888b. 88
+ 	      `8b 88'  `88 88ooood8 88'  `""     88        88'  `88 88'  `88 88ooood8 88
+ 	d8'   .8P 88.  .88 88.  ... 88.  ...     88        88.  .88 88    88 88.  ... 88
+ 	 Y88888P  88Y888P' `88888P' `88888P'     dP        `88888P8 dP    dP `88888P' dP
+ 	          88
+ 	          dP
 
 ###
-	.d88888b                              888888ba                             dP
-	88.    "'                             88    `8b                            88
-	`Y88888b. 88d888b. .d8888b. .d8888b. a88aaaa8P' .d8888b. 88d888b. .d8888b. 88
-	      `8b 88'  `88 88ooood8 88'  `""  88        88'  `88 88'  `88 88ooood8 88
-	d8'   .8P 88.  .88 88.  ... 88.  ...  88        88.  .88 88    88 88.  ... 88
-	 Y88888P  88Y888P' `88888P' `88888P'  dP        `88888P8 dP    dP `88888P' dP
-	          88
-	          dP
-###
-
 
 class SpecPanel
 	constructor: ->
 
 		@panel = panel
+		@propLayers = []
 		@_props = {}
 		@frame = @panel.getBoundingClientRect()
+		@defaults = Framer.Device.screen._propertyList()
 
 		Object.defineProperty @,
 			'props',
@@ -678,28 +833,18 @@ class SpecPanel
 
 		@panel.style.opacity = if startOpen then '1' else '0'
 
-		col0x = '4px'
-		col1x = '84px'
-		col2x = '156px'
 
-		row = (num, offset = 0) -> return (16 + (35 * num) - offset) + 'px'
+		# ------------------
+		# device
 
-
-		# Device
-
-		@deviceLabel = new SpecLabel
-			top: row(0)
-			left: col0x
-			text: 'Device'
-			'font-size': '.65em'
+		# Set Device Options
 
 		deviceOptions = []
-		currentKey = undefined
+		currentSelected = undefined
 
 		for key, value of Framer.DeviceComponent.Devices
 			if _.endsWith(key, 'hand')
 				continue
-
 
 			if not value.minStudioVersion?
 				continue
@@ -710,425 +855,855 @@ class SpecPanel
 			if Utils.framerStudioVersion() < value.minStudioVersion
 				continue
 
-			deviceOptions.push
-				name: key, 
-				value: value
+			deviceOptions.push (key)
 
 			if key is Framer.Device.deviceType
-				currentKey = _.indexOf(
-					_.keys(Framer.DeviceComponent.Devices), 
-					key
-					)
+				currentSelected = deviceOptions.length - 1
 
-		@deviceSelect = new SpecDropdownBox
-			top: row(0)
-			left: col1x
-			options: _.uniq(deviceOptions) 
-			selected: currentKey
-			callback: (event) ->
-				device = deviceOptions[@selectedIndex]
-				selected = @options[@selectedIndex]
+		row = new pRow
+			text: 'Device'
 
-				screenBg = Screen.backgroundColor
+		@deviceBox = new pSelect
+			parent: row
+			unit: ''
+			options: deviceOptions
+			selected: currentSelected
+			callback: (index) =>
+				deviceType = deviceOptions[index]
+				device = Framer.DeviceComponent.Devices[deviceType]
+				
+				_.assign window.localStorage,
+					deviceType: deviceType
+					device: device
+					bg: Screen.backgroundColor
 
-				Framer.Device.deviceType = device.name
+				window.location.reload()
 
-				# silly fix
-				Framer.Device._context.devicePixelRatio = 0
-				Utils.delay 0, => 
-					Framer.Device._context.devicePixelRatio = device.value.devicePixelRatio
+		row = new pRow
+			text: 'Name'
 
-					Screen.backgroundColor = screenBg
+		@nameBox = new pInput
+			parent: row
+			className: 'full'
+			unit: ''
 
-		@specDivider1 = new SpecDivider
-			top: row(1.25, 2)
+		row = new pRow
+			text: 'Component'
 
-		# pos
+		@componentNameBox = new pInput
+			parent: row
+			className: 'full'
+			unit: ''
 
-		@posLabel = new SpecLabel
-			top: row(1.75, 2)
-			left: col0x
+		@componentNamesRow = new pRow
+			text: 'Part of'
+
+		@componentNamesBox = new pInput
+			parent: @componentNamesRow
+			className: 'full'
+			unit: ''
+
+		# ------------------------------------
+		# divider
+
+		new pDivider
+
+		# ------------------
+		# position
+
+		row = new pRow
 			text: 'Position'
-			'font-size': '.65em'
 
-		@xValueBox = new SpecValueBox
-			top: row(1.75)
-			left: col1x
-			text: '258'
+		@xBox = new pInput
+			parent: row, 
+			className: 'left'
 			unit: 'x'
 
-		@yValueBox = new SpecValueBox
-			top: row(1.75)
-			left: col2x
-			text: '258'
+		@yBox = new pInput
+			parent: row, 
+			className: 'right'
 			unit: 'y'
 
+		# ------------------
 		# size
 
-		@sizeLabel = new SpecLabel
-			top: row(2.75, 2)
-			left: col0x
+		row = new pRow
 			text: 'Size'
-			'font-size': '.65em'
 
-		@wValueBox = new SpecValueBox
-			top: row(2.75)
-			left: col1x
-			text: '258'
+		@widthBox = new pInput
+			parent: row, 
+			className: 'left'
 			unit: 'w'
 
-		@hValueBox = new SpecValueBox
-			top: row(2.75)
-			left: col2x
-			text: '258'
+		@heightBox = new pInput
+			parent: row, 
+			className: 'right'
 			unit: 'h'
 
-		# background
+		# ------------------
+		# background color
 
-		@bgColorLabel = new SpecLabel
-			top: row(3.75, 2)
-			left: col0x
+		row = new pRow
 			text: 'Background'
-			'font-size': '.65em'
 
-		@bgColorValueBox = new SpecColorValueBox
-			top: row(3.75)
-			left: col1x
+		@backgroundColorBox = new pColor
+			parent: row, 
+			className: 'left'
 
+		# ----------------------------------------
+		# gradient
+
+		@gradientPropertiesDiv = new pDiv
+
+		row = new pRow
+			parent: @gradientPropertiesDiv
+			text: 'Gradient'
+
+		@gradientStartBox = new pColor
+			parent: row
+			className: 'left'
+			section: @gradientPropertiesDiv
+			default: null
+
+		@gradientEndBox = new pColor
+			parent: row
+			className: 'right'
+			section: @gradientPropertiesDiv
+			default: null
+
+		# ------------------
+		# gradient angle
+
+		row = new pRow
+			parent: @gradientPropertiesDiv
+			text: ''
+
+		@gradientAngleBox = new pInput
+			parent: row
+			className: 'left'
+			unit: 'a'
+			section: @gradientPropertiesDiv
+			default: null
+
+		# ------------------
 		# opacity
 
-		@opacityLabel = new SpecLabel
-			top: row(4.75, 2)
-			left: col0x
+		row = new pRow
 			text: 'Opacity'
-			'font-size': '.65em'
 
-		@opacityValueBox = new SpecValueBox
-			top: row(4.75)
-			left: col1x
-			text: '1.0'
-			unit: 'a'
+		@opacityBox = new pInput
+			parent: row
+			className: 'left'
+			unit: ''
 
-		# Divider # -----------------
 
-		@specDivider1 = new SpecDivider
-			top: row(6, 2)
+		# ------------------------------------
+		# border properties
 
+		@borderPropertiesDiv = new pDiv
+
+
+		# ------------------
 		# border
 
-		@borderColorLabel = new SpecLabel
-			top: row(6.5, 2)
-			left: col0x
+		row = new pRow
 			text: 'Border'
-			'font-size': '.65em'
+			parent: @borderPropertiesDiv
 
-		@borderColorValueBox = new SpecColorValueBox
-			top: row(6.5)
-			left: col1x
+		@borderColorBox = new pColor
+			parent: row
+			className: 'left'
 
-		@borderValueBox = new SpecValueBox
-			top: row(6.5)
-			left: col2x
-			text: '1'
+		@borderWidthBox = new pInput
+			parent: row
+			className: 'right'
 			unit: 'w'
+			section: @borderPropertiesDiv
 
+		# ------------------
 		# radius
 
-		@radiusLabel = new SpecLabel
-			top: row(7.5, 2)
-			left: col0x
+		row = new pRow
 			text: 'Radius'
-			'font-size': '.65em'
+			parent: @borderPropertiesDiv
 
-		@radiusValueBox = new SpecValueBox
-			top: row(7.5)
-			left: col1x
-			text: '0'
+		@borderRadiusBox = new pInput
+			parent: row
+			className: 'left'
+			unit: ''
+			section: @borderPropertiesDiv
 
+		# ------------------
 		# shadow
 
-		@shadowLabel = new SpecLabel
-			top: row(8.5, 2)
-			left: col0x
+
+		@shadowPropertiesDiv = new pDiv
+
+		row = new pRow
+			parent: @shadowPropertiesDiv
 			text: 'Shadow'
-			'font-size': '.65em'
 
-		@shadowColorValueBox = new SpecColorValueBox
-			top: row(8.5)
-			left: col1x
+		@shadowColorBox = new pColor
+			parent: row
+			section: @shadowPropertiesDiv
+			className: 'left'
 
-		@shadowSpreadValueBox = new SpecValueBox
-			top: row(8.5)
-			left: col2x
-			text: '1'
+		@shadowSpreadBox = new pInput
+			parent: row
+			section: @shadowPropertiesDiv
+			className: 'right'
 			unit: 's'
+			default: '0'
 
-		@shadowXValueBox = new SpecValueBox
-			top: row(9.5)
-			left: col1x
-			text: '0'
+		row = new pRow
+			parent: @shadowPropertiesDiv
+			text: ''
+
+		@shadowXBox = new pInput
+			parent: row
+			section: @shadowPropertiesDiv
+			className: 'left'
 			unit: 'x'
+			default: '0'
 
-		@shadowYValueBox = new SpecValueBox
-			top: row(9.5)
-			left: col2x
-			text: '0'
+		@shadowYBox = new pInput
+			parent: row
+			section: @shadowPropertiesDiv
+			className: 'right'
 			unit: 'y'
+			default: '0'
 
-		@shadowBlurValueBox = new SpecValueBox
-			top: row(10.5)
-			left: col1x
-			unit: 'blur'
+		row = new pRow
+			parent: @shadowPropertiesDiv
+			text: ''
 
-		# Divider # -----------------
+		@shadowBlurBox = new pInput
+			parent: row
+			section: @shadowPropertiesDiv
+			className: 'left'
+			unit: 'b'
+			default: '0'
 
-		@specDivider2 = new SpecDivider
-			top: row(11.75, 2)
+		# ------------------------------------
+		# text styles
 
-		# Font
+		@textPropertiesDiv = new pDiv
 
-		@fontLabel = new SpecLabel
-			top: row(12.25, 2)
-			left: col0x
+
+		new pDivider
+			parent: @textPropertiesDiv
+
+		# ------------------
+		# font family
+
+		row = new pRow
+			parent: @textPropertiesDiv
 			text: 'Font'
-			'font-size': '.65em'
 
-		@fontFamilyValueBox = new SpecWideValueBox
-			top: row(12.25)
-			left: col1x
+		@fontFamilyBox = new pInput
+			parent: row
+			section: @textPropertiesDiv
+			className: 'full'
+			unit: ''
 
-		# Color
+		# ------------------
+		# color
 
-		@colorLabel = new SpecLabel
-			top: row(13.25, 2)
-			left: col0x
+		row = new pRow
+			parent: @textPropertiesDiv
 			text: 'Color'
-			'font-size': '.65em'
 
-		@colorValueBox = new SpecColorValueBox
-			top: row(13.25)
-			left: col1x
+		@colorBox = new pColor
+			parent: row
+			className: 'left'
 
-		@fontStyleValueBox = new SpecValueBox
-			top: row(13.25)
-			left: col2x
+		@fontSizeBox = new pInput
+			parent: row
+			section: @textPropertiesDiv
+			className: 'right'
+			unit: ''
 
-		# Font Size
+		# ------------------
+		# weight
 
-		@fontSizeLabel = new SpecLabel
-			top: row(14.25, 2)
-			left: col0x
-			text: 'Size'
-			'font-size': '.65em'
+		row = new pRow
+			parent: @textPropertiesDiv
+			text: 'Style'
 
-		@fontSizeValueBox = new SpecValueBox
-			top: row(14.25)
-			left: col1x
-			unit: 's'
+		@fontStyleBox = new pInput
+			parent: row
+			section: @textPropertiesDiv
+			className: 'left'
+			unit: ''
 
-		@fontWeightValueBox = new SpecValueBox
-			top: row(14.25)
-			left: col2x
+		@fontWeightBox = new pInput
+			parent: row
+			section: @textPropertiesDiv
+			className: 'right'
 			unit: 'w'
 
-		# Line Height
+		# ------------------
+		# align
 
-		@lineHightLabel = new SpecLabel
-			top: row(15.25, 2)
-			left: col0x
-			text: 'Height'
-			'font-size': '.65em'
+		row = new pRow
+			parent: @textPropertiesDiv
+			text: 'Align'
 
-		@lineHeightValueBox = new SpecValueBox
-			top: row(15.25)
-			left: col1x
-			unit: 'lh'
+		@textAlignBox = new pInput
+			parent: row
+			section: @textPropertiesDiv
+			className: 'full'
+			unit: ''
+			default: 'left'
 
-		# Divider # -----------------
+		# ------------------
+		# spacing
 
-		@specDivider2 = new SpecDivider
-			top: row(16.5, 2)
-		
-		# Name
-		@nameLabel = new SpecLabel
-			top: row(17)
-			left: col0x
-			text: 'Name'
-			'font-size': '.65em'
+		row = new pRow
+			parent: @textPropertiesDiv
+			text: 'Spacing'
 
-		@nameValueBox = new SpecWideValueBox
-			top: row(17)
-			left: col1x
+		@letterSpacingBox = new pInput
+			parent: row
+			section: @textPropertiesDiv
+			className: 'left'
+			unit: 'lt'
+			default: '1'
 
-		# Component
+		@lineHeightBox = new pInput
+			parent: row
+			section: @textPropertiesDiv
+			className: 'right'
+			unit: 'ln'
 
-		@componentLabel = new SpecLabel
-			top: row(18)
-			left: col0x
-			text: 'Component'
-			'font-size': '.65em'
+		# ------------------
+		# text
 
-		@componentValueBox = new SpecWideValueBox
-			top: row(18)
-			left: col1x
+		row = new pRow
+			parent: @textPropertiesDiv
+			text: 'Text'
 
-		# Parent Component
-
-		@parentComponentLabel = new SpecLabel
-			top: row(19)
-			left: col0x
-			text: 'Part of'
-			'font-size': '.65em'
-
-		@parentComponentValueBox = new SpecWideValueBox
-			top: row(19)
-			left: col1x
+		@textBox = new pInput
+			parent: row
+			section: @textPropertiesDiv
+			className: 'full'
+			unit: ''
 
 
-		# Links
+		# ------------------------------------
+		# transform properties
+
+
+		@transformsDiv = new pDiv
+
+		new pDivider
+			parent: @transformsDiv
+
+		@transformsAcco = new pAccordian
+			text: 'Transforms'
+			parent: @transformsDiv
+
+
+		# ------------------
+		# scale
+
+		row = new pRow
+			parent: @transformsAcco.body
+			text: 'Scale'
+
+		@scaleBox = new pInput
+			parent: row
+			section: @transformsDiv
+			className: 'left'
+			unit: ''
+
+		row = new pRow
+			parent: @transformsAcco.body
+			text: ''
+
+		@scaleXBox = new pInput
+			parent: row
+			section: @transformsDiv
+			className: 'left'
+			unit: 'x'
+
+		@scaleYBox = new pInput
+			parent: row
+			section: @transformsDiv
+			className: 'right'
+			unit: 'y'
+
+		# ------------------
+		# rotation
+
+		row = new pRow
+			parent: @transformsAcco.body
+			text: 'Rotate'
+
+		@rotationBox = new pInput
+			parent: row
+			section: @transformsDiv
+			className: 'left'
+			unit: ''
+
+		row = new pRow
+			parent: @transformsAcco.body
+			text: ''
+
+		@rotationXBox = new pInput
+			parent: row
+			section: @transformsDiv
+			className: 'left'
+			unit: 'x'
+
+		@rotationYBox = new pInput
+			parent: row
+			section: @transformsDiv
+			className: 'right'
+			unit: 'y'
+
+
+		# ------------------
+		# origin
+
+		row = new pRow
+			parent: @transformsAcco.body
+			text: 'Origin'
+
+		@originXBox = new pInput
+			parent: row
+			section: @transformsDiv
+			className: 'left'
+			unit: 'x'
+
+		@originYBox = new pInput
+			parent: row
+			section: @transformsDiv
+			className: 'right'
+			unit: 'y'
+
+		# ------------------
+		# skew
+
+		row = new pRow
+			parent: @transformsAcco.body
+			text: 'Skew'
+
+		@skewBox = new pInput
+			parent: row
+			section: @transformsDiv
+			className: 'left'
+			unit: ''
+
+		row = new pRow
+			parent: @transformsAcco.body
+			text: ''
+
+		@skewXBox = new pInput
+			parent: row
+			section: @transformsDiv
+			className: 'left'
+			unit: 'x'
+
+		@skewYBox = new pInput
+			parent: row
+			section: @transformsDiv
+			className: 'right'
+			unit: 'y'
+
+		# ------------------
+		# perspective
+
+		row = new pRow
+			parent: @transformsAcco.body
+			text: 'Perspective'
+
+		@perspectiveBox = new pInput
+			parent: row
+			section: @transformsDiv
+			className: 'left'
+			unit: ''
+			default: ''
+
+
+		# ------------------------------------
+		# filters properties
+
+
+		@filtersDiv = new pDiv
+
+		new pDivider
+			parent: @filtersDiv
+
+		@filtersAcco = new pAccordian
+			parent: @filtersDiv
+			text: 'Filters'
+
+		# ------------------
+		# blur
+
+		row = new pRow
+			parent: @filtersAcco.body
+			text: 'Blur'
+
+		@blurBox = new pInput
+			parent: row
+			section: @filtersDiv
+			className: 'left'
+			unit: ''
+
+		# ------------------
+		# brightness
+
+		row = new pRow
+			parent: @filtersAcco.body
+			text: 'Brightness'
+
+		@brightnessBox = new pInput
+			parent: row
+			section: @filtersDiv
+			className: 'left'
+			unit: ''
+
+		# ------------------
+		# contrast
+
+		row = new pRow
+			parent: @filtersAcco.body
+			text: 'Contrast'
+
+		@contrastBox = new pInput
+			parent: row
+			section: @filtersDiv
+			className: 'left'
+			unit: ''
+
+		# ------------------
+		# grayscale
+
+		row = new pRow
+			parent: @filtersAcco.body
+			text: 'Grayscale'
+
+		@grayscaleBox = new pInput
+			parent: row
+			section: @filtersDiv
+			className: 'left'
+			unit: ''
+
+		# ------------------
+		# huerotate
+
+		row = new pRow
+			parent: @filtersAcco.body
+			text: 'hueRotate'
+
+		@hueRotateBox = new pInput
+			parent: row
+			section: @filtersDiv
+			className: 'left'
+			unit: ''
+
+		# ------------------
+		# invert
+
+		row = new pRow
+			parent: @filtersAcco.body
+			text: 'Invert'
+
+		@invertBox = new pInput
+			parent: row
+			section: @filtersDiv
+			className: 'left'
+			unit: ''
+
+		# ------------------
+		# saturate
+
+		row = new pRow
+			parent: @filtersAcco.body
+			text: 'Saturate'
+
+		@saturateBox = new pInput
+			parent: row
+			section: @filtersDiv
+			className: 'left'
+			unit: ''
+
+		# ------------------
+		# sepia
+
+		row = new pRow
+			parent: @filtersAcco.body
+			text: 'Sepia'
+
+		@sepiaBox = new pInput
+			parent: row
+			section: @filtersDiv
+			className: 'left'
+			unit: ''
+
+		# -------------------------- end filters
+
+
+		# ------------------------------------
+		# effects properties
+
+
+		@effectsDiv = new pDiv
+
+		new pDivider
+			parent: @effectsDiv
+
+		@effectsAcco = new pAccordian
+			text: 'Effects'
+			parent: @effectsDiv
+
+
+		# ------------------
+		# background filters
+
+		row = new pRow
+			parent: @effectsAcco.body
+			text: 'Blending'
+
+		@blendingBox = new pInput
+			parent: row
+			section: @effectsDiv
+			className: 'full'
+			unit: ''
+			default: 'normal'
+
+		row = new pRow
+			parent: @effectsAcco.body
+			text: 'Blur'
+
+		@backgroundBlurBox = new pInput
+			parent: row
+			section: @effectsDiv
+			className: 'left'
+			unit: ''
+
+
+		row = new pRow
+			parent: @effectsAcco.body
+			text: 'Brightness'
+
+		@backgroundBrightnessBox = new pInput
+			parent: row
+			section: @effectsDiv
+			className: 'left'
+			unit: ''
+
+
+		row = new pRow
+			parent: @effectsAcco.body
+			text: 'Saturate'
+
+		@backgroundSaturateBox = new pInput
+			parent: row
+			section: @effectsDiv
+			className: 'left'
+			unit: ''
+
+
+		row = new pRow
+			parent: @effectsAcco.body
+			text: 'hueRotate'
+
+		@backgroundHueRotateBox = new pInput
+			parent: row
+			section: @effectsDiv
+			className: 'left'
+			unit: ''
+
+
+		row = new pRow
+			parent: @effectsAcco.body
+			text: 'Contrast'
+
+		@backgroundContrastBox = new pInput
+			parent: row
+			section: @effectsDiv
+			className: 'left'
+			unit: ''
+
+
+		row = new pRow
+			parent: @effectsAcco.body
+			text: 'Invert'
+
+		@backgroundInvertBox = new pInput
+			parent: row
+			section: @effectsDiv
+			className: 'left'
+			unit: ''
+
+
+		row = new pRow
+			parent: @effectsAcco.body
+			text: 'Grayscale'
+
+		@backgroundGrayscaleBox = new pInput
+			parent: row
+			section: @effectsDiv
+			className: 'left'
+			unit: ''
+
+
+		row = new pRow
+			parent: @effectsAcco.body
+			text: 'Sepia'
+
+		@backgroundSepiaBox = new pInput
+			parent: row
+			section: @effectsDiv
+			className: 'left'
+			unit: ''
+
+
+
+		# image --------------------------------
+
+		@imagePropertiesDiv = new pDiv
+
+		new pDivider
+			parent: @imagePropertiesDiv
+
+		# ------------------
+		# image
+
+		@imageBox = new pImage
+			parent: @imagePropertiesDiv
+			section: @imagePropertiesDiv
+
+
+		# ------------------
+		# placeholders
+
+		row = new pRow
+			text: ''
+		row.element.style.height = '64px'
+
+		# ------------------
+		# social media links
+
+		@socialMediaRow = new pRow
+			parent: @textPropertiesDiv.body
+			text: ''
 
 		@linkedinIcon = document.createElement('a')
-		@linkedinIcon.href = "http://www.linkedin.com/in/steveruizok"
-		@linkedinIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" id="linkedin_logo" class="mememeLink" width="20" height="20" fill="rgba(91, 91, 91, 1.000)" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>'
+		_.assign @linkedinIcon,
+			href: "http://www.linkedin.com/in/steveruizok"
+			innerHTML: '<svg xmlns="http://www.w3.org/2000/svg" id="linkedin_logo" class="logo" width="20" height="20" fill="rgba(91, 91, 91, 1.000)" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>'
 
 		@githubIcon = document.createElement('a')
-		@githubIcon.href = "http://github.com/steveruizok/gotcha"
-		@githubIcon.innerHTML = '<svg height="20px" width="20px" id="github_logo" class="mememeLink" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><path fill="rgba(91, 91, 91, 1.000)" d="M512 0C229.25 0 0 229.25 0 512c0 226.25 146.688 418.125 350.156 485.812 25.594 4.688 34.938-11.125 34.938-24.625 0-12.188-0.469-52.562-0.719-95.312C242 908.812 211.906 817.5 211.906 817.5c-23.312-59.125-56.844-74.875-56.844-74.875-46.531-31.75 3.53-31.125 3.53-31.125 51.406 3.562 78.47 52.75 78.47 52.75 45.688 78.25 119.875 55.625 149 42.5 4.654-33 17.904-55.625 32.5-68.375C304.906 725.438 185.344 681.5 185.344 485.312c0-55.938 19.969-101.562 52.656-137.406-5.219-13-22.844-65.094 5.062-135.562 0 0 42.938-13.75 140.812 52.5 40.812-11.406 84.594-17.031 128.125-17.219 43.5 0.188 87.312 5.875 128.188 17.281 97.688-66.312 140.688-52.5 140.688-52.5 28 70.531 10.375 122.562 5.125 135.5 32.812 35.844 52.625 81.469 52.625 137.406 0 196.688-119.75 240-233.812 252.688 18.438 15.875 34.75 47 34.75 94.75 0 68.438-0.688 123.625-0.688 140.5 0 13.625 9.312 29.562 35.25 24.562C877.438 930 1024 738.125 1024 512 1024 229.25 794.75 0 512 0z" /></svg>'
+		_.assign @githubIcon,
+			href: "http://github.com/steveruizok/gotcha"
+			innerHTML: '<svg height="20px" width="20px" id="github_logo" class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><path fill="rgba(91, 91, 91, 1.000)" d="M512 0C229.25 0 0 229.25 0 512c0 226.25 146.688 418.125 350.156 485.812 25.594 4.688 34.938-11.125 34.938-24.625 0-12.188-0.469-52.562-0.719-95.312C242 908.812 211.906 817.5 211.906 817.5c-23.312-59.125-56.844-74.875-56.844-74.875-46.531-31.75 3.53-31.125 3.53-31.125 51.406 3.562 78.47 52.75 78.47 52.75 45.688 78.25 119.875 55.625 149 42.5 4.654-33 17.904-55.625 32.5-68.375C304.906 725.438 185.344 681.5 185.344 485.312c0-55.938 19.969-101.562 52.656-137.406-5.219-13-22.844-65.094 5.062-135.562 0 0 42.938-13.75 140.812 52.5 40.812-11.406 84.594-17.031 128.125-17.219 43.5 0.188 87.312 5.875 128.188 17.281 97.688-66.312 140.688-52.5 140.688-52.5 28 70.531 10.375 122.562 5.125 135.5 32.812 35.844 52.625 81.469 52.625 137.406 0 196.688-119.75 240-233.812 252.688 18.438 15.875 34.75 47 34.75 94.75 0 68.438-0.688 123.625-0.688 140.5 0 13.625 9.312 29.562 35.25 24.562C877.438 930 1024 738.125 1024 512 1024 229.25 794.75 0 512 0z" /></svg>'
 
 		@twitterIcon = document.createElement('a')
-		@twitterIcon.href = "http://twitter.com/steveruizok"
-		@twitterIcon.innerHTML = '<svg height="28px" width="28px" id="twitter_logo" class="mememeLink" data-name="Logo — FIXED" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><defs><style>.cls-1{fill:none;}.cls-2{fill:rgba(91, 91, 91, 1.000);}</style></defs><title>Twitter_Logo_Blue</title><rect class="cls-1" width="400" height="400"/><path class="cls-2" d="M153.62,301.59c94.34,0,145.94-78.16,145.94-145.94,0-2.22,0-4.43-.15-6.63A104.36,104.36,0,0,0,325,122.47a102.38,102.38,0,0,1-29.46,8.07,51.47,51.47,0,0,0,22.55-28.37,102.79,102.79,0,0,1-32.57,12.45,51.34,51.34,0,0,0-87.41,46.78A145.62,145.62,0,0,1,92.4,107.81a51.33,51.33,0,0,0,15.88,68.47A50.91,50.91,0,0,1,85,169.86c0,.21,0,.43,0,.65a51.31,51.31,0,0,0,41.15,50.28,51.21,51.21,0,0,1-23.16.88,51.35,51.35,0,0,0,47.92,35.62,102.92,102.92,0,0,1-63.7,22A104.41,104.41,0,0,1,75,278.55a145.21,145.21,0,0,0,78.62,23"/></svg>'
+		_.assign @twitterIcon,
+			href: "http://twitter.com/steveruizok"
+			innerHTML: '<svg height="28px" width="28px" id="twitter_logo" class="logo" data-name="Logo — FIXED" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><defs><style>.cls-1{fill:none;}.cls-2{fill:rgba(91, 91, 91, 1.000);}</style></defs><title>Twitter_Logo_Blue</title><rect class="cls-1" width="400" height="400"/><path class="cls-2" d="M153.62,301.59c94.34,0,145.94-78.16,145.94-145.94,0-2.22,0-4.43-.15-6.63A104.36,104.36,0,0,0,325,122.47a102.38,102.38,0,0,1-29.46,8.07,51.47,51.47,0,0,0,22.55-28.37,102.79,102.79,0,0,1-32.57,12.45,51.34,51.34,0,0,0-87.41,46.78A145.62,145.62,0,0,1,92.4,107.81a51.33,51.33,0,0,0,15.88,68.47A50.91,50.91,0,0,1,85,169.86c0,.21,0,.43,0,.65a51.31,51.31,0,0,0,41.15,50.28,51.21,51.21,0,0,1-23.16.88,51.35,51.35,0,0,0,47.92,35.62,102.92,102.92,0,0,1-63.7,22A104.41,104.41,0,0,1,75,278.55a145.21,145.21,0,0,0,78.62,23"/></svg>'
 
 		for element in [@linkedinIcon, @githubIcon, @twitterIcon]
-			panel.appendChild(element)
-			element.classList.add('mememeLink')
+			@socialMediaRow.element.appendChild(element)
+			@socialMediaRow.element.classList.add('socialLinks')
 
+		@hideDivs()
+		@clearProps()
+	
+	showProperties: (layer, customProps) =>
 
-		# ----
+		props = layer.props
+		_.assign props, customProps
 
-		# properties
+		defaults = layer._propertyList()
 
-		props = [
-			['x', @xValueBox],
-			['y', @yValueBox],
-			['width', @wValueBox]
-			['height', @hValueBox]
-			['opacity', @opacityValueBox, true]
-			['borderWidth', @borderValueBox]
-			['borderRadius', @radiusValueBox]
-			['shadowSpread', @shadowSpreadValueBox]
-			['shadowX', @shadowXValueBox]
-			['shadowY', @shadowYValueBox]
-			['shadowBlur', @shadowBlurValueBox]
-			['fontFamily', @fontFamilyValueBox]
-			['fontSize', @fontSizeValueBox]
-			['fontWeight', @fontWeightValueBox]
-			['lineHeight', @lineHeightValueBox]
-			['fontStyle', @fontStyleValueBox]
-			['componentName', @componentValueBox]
-			['componentNames', @parentComponentValueBox]
-			['name', @nameValueBox]
-		]
+		_.assign defaults,
+			rotation: defaults.rotationZ
+			blending: {default: 'normal'}
 
-		colorProps = [
-			['backgroundColor', @bgColorValueBox]
-			['borderColor', @borderColorValueBox]
-			['shadowColor', @shadowColorValueBox]
-			['color', @colorValueBox]
-		]
+		@hideDivs()
 
-		for prop in props
-			@defineCustomProperty(prop[0], prop[1], prop[2])
-			@addCopyEvent(prop[0], prop[1])
+		for key, value of _.merge(layer.props, customProps)
 
-		for prop in colorProps
-			@defineCustomColorProperty(prop[0], prop[1], prop[2])
-			@addCopyEvent(prop[0], prop[1])
+			propLayer = @[key + 'Box']
 
-	defineCustomProperty: (variableName, layer, float) ->
-		Object.defineProperty @,
-			variableName,
-			get: => return @props[variableName]
-			set: (value) =>
-				@props[variableName] = value
+			if not propLayer
+				continue
 
-				if not value? or value is '0'
-					layer.value = ''
-					return
-
-				if float
-					layer.value = parseFloat(value ? '0').toFixed(2)
-					return
-
-				if typeof value is 'number'
-					value = parseInt(value).toFixed()
-				
-				layer.value = value
-				
-	defineCustomColorProperty: (variableName, layer) ->
-		Object.defineProperty @,
-			variableName,
-			get: => return @props[variableName]
-			set: (value) =>
-				@props[variableName] = value
-				layer.value = value
+			def = defaults[key]?.default
 			
+			@showProperty(key, value, propLayer, def)
 
-	addCopyEvent: (variableName, layer) ->
-		do (variableName, layer) =>
-			layer.element.addEventListener 'click', =>
-				@copyContent(@[variableName])
-				@highlight(layer)
 
-	copyContent: (content) =>
-		secretBox.value = content
-		secretBox.select()
-		document.execCommand('copy')
-		secretBox.blur()
+	showProperty: (key, value, propLayer, def) =>
 
-	highlight: (layer) =>
-		startBorderColor = layer.element.style['border-color']
-		layer.element.style['border-color'] = 'rgba(118, 237, 93, 1.000)'
-		reset = => layer.element.style['border-color'] = startBorderColor
+		propLayer.isDefault = false
 
-		_.delay(reset, 120)
+		if not value? or _.isNaN(value) or value is def
+			value = def ? ''
+			propLayer.isDefault = true
+
+		# color
+		if Color.isColor(value)
+			value = value.toHslString()
+
+		# gradient
+		if value?.constructor?.name is 'Gradient'
+			propLayer.value = ''
+			return
+
+		# string
+		if typeof value is 'string'
+			propLayer.value = value
+			return
+
+		value = value.toString()
+
+		# float
+		if value.indexOf('.') isnt -1
+			propLayer.value = parseFloat(value).toFixed(2)
+			return
+
+		# numer
+		propLayer.value = parseInt(value, 10).toFixed()
+
+	hideDivs: =>
+		for div in [
+			@gradientPropertiesDiv,
+			@textPropertiesDiv,
+			@shadowPropertiesDiv,
+			@imagePropertiesDiv,
+			@filtersDiv,
+			@transformsDiv,
+			@borderPropertiesDiv,
+			@effectsDiv
+		]
+		
+			div.visible = false
 
 	clearProps: =>
-		for key, value of @props
-			@[key] = undefined
-		@setTextStyles()
-
-	setTextStyles: (value) =>
-
-		for layer in [
-			@fontLabel,
-			@fontSizeLabel,
-			@colorLabel,
-			@lineHightLabel,
-			@fontFamilyValueBox, 
-			@colorValueBox, 
-			@fontSizeValueBox, 
-			@fontWeightValueBox, 
-			@lineHeightValueBox, 
-			@fontStyleValueBox
-		]
-			layer.element.style.opacity = if value? then '1' else '0'
-
+		for prop in @propLayers
+			prop.value = undefined
 
 
 
  # -------------------------------------------
 
-###
+
+### -------------------------------------------
+
 	 .88888.             dP            dP
 	d8'   `88            88            88
 	88        .d8888b. d8888P .d8888b. 88d888b. .d8888b.
 	88   YP88 88'  `88   88   88'  `"" 88'  `88 88'  `88
 	Y8.   .88 88.  .88   88   88.  ... 88    88 88.  .88
-	 `88888'  `88888P'   dP   `88888P' dP    dP `88888P8
-	
-	
-###
+	 `88888'  `88888P'   dP   `88888P' dP    dP `8888888
+
+### 
 
 
 class Gotcha
@@ -1612,6 +2187,8 @@ class Gotcha
 
 	# set the panel with current properties
 	setPanelProperties: () =>
+
+		# decide which layer to use for panel props
 		if @selectedLayer? and @selectedLayer isnt Framer.Device.screen
 			layer = @selectedLayer
 		else if @hoveredLayer?
@@ -1620,18 +2197,34 @@ class Gotcha
 			@specPanel.clearProps()
 			return
 
-		props = layer.props
-
-		_.assign props,
+		# properties to assigned to layer.props
+		customProps =
 			x: layer.screenFrame.x
 			y: layer.screenFrame.y
 			componentName: layer.constructor.name
 			componentNames: @getComponentFromLayer(layer.parent)
 			parentName: layer.parent?.name
+			rotation: layer.rotationZ
+			textAlign: layer.props.styledTextOptions?.alignment
+			blending: layer.blending
+		
+		if layer.gradient?
+			_.assign customProps,
+				gradientStart: layer.gradient.start
+				gradientEnd: layer.gradient.end
+				gradientAngle: layer.gradient.angle
 
-		_.assign @specPanel, props
+		if layer.shadows?
+			_.assign customProps,
+				shadowX: layer.shadows[0]?.x
+				shadowY: layer.shadows[0]?.y
+				shadowSpread: layer.shadows[0]?.spread
+				shadowColor: layer.shadows[0]?.color
+				shadowType: layer.shadows[0]?.type
+				shadowBlur: layer.shadows[0]?.blur
 
-		@specPanel.setTextStyles(layer.fontFamily)
+		@specPanel.showProperties(layer, customProps)
+
 
 	setHoveredLayer: (event) =>
 		return if not @enabled
@@ -1728,5 +2321,17 @@ class Gotcha
 	unfocus: (event) =>
 		ctx.removeAll()
 
+
+
+panel = document.createElement('div')
+panel.id = 'pContainer'
+viewC = document.getElementById('FramerContextRoot-Default')
+Utils.delay 0, => viewC.appendChild(panel)
+
+secretBox = document.createElement('input')
+document.body.appendChild(secretBox)
+
+
+ctx = new SVGContext
 
 exports.gotcha = gotcha = new Gotcha

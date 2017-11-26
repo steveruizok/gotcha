@@ -6,6 +6,7 @@ gotcha.onlyVisible = true
 
 Screen.backgroundColor = '#000'
 
+
 # components
 
 # BulletItem
@@ -55,7 +56,12 @@ class CTA extends Layer
 			height: 44
 			width: 128
 			text: 'Click Me'
-			backgroundColor: 'rgba(0, 170, 255, 1.000)'
+			gradient:
+				start: '#0070ff'
+				end: '#00aaff'
+				angle: 15
+			borderWidth: 1
+			borderColor: '#00aaff'
 		
 		@action = -> null
 		
@@ -90,7 +96,7 @@ title = new TextLayer
 	fontFamily: 'Helvetica'
 	text: 'Gotcha'
 	letterSpacing: 1.5
-	
+
 ok_hand.props =
 	x: title.maxX + 16
 	midY: title.midY
@@ -151,6 +157,7 @@ slides.brightness = 0
 lowscrim.gradient =
 	start: 'rgba(0,0,0,.7)'
 	end: 'rgba(0,0,0,0)'
+	
 
 # Functions
 
@@ -315,3 +322,14 @@ getStarted.action = showSteps1
 
 start()
 
+blender = new Layer
+	blending: 'hardLight'
+	backgroundColor: 'red'
+	opacity: .5
+	
+blender = new Layer
+	blending: 'darken'
+	backgroundColor: 'red'
+	opacity: .5
+	y: 454
+	x: 454
