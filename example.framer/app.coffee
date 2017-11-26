@@ -4,6 +4,8 @@
 { gotcha } = require "gotcha"
 gotcha.onlyVisible = true
 
+Framer.Extras.Preloader.enable()
+
 Screen.backgroundColor = '#000'
 
 # BulletItem

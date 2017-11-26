@@ -1685,7 +1685,7 @@ class SpecPanel
 							parent: row
 							className: 'left'
 							unit: ''
-							value: stateA[key].start
+							value: stateA?[key]?.start
 							isDefault: false
 
 						# to
@@ -1693,7 +1693,7 @@ class SpecPanel
 							parent: row
 							className: 'right'
 							unit: ''
-							value: stateB[key].start
+							value: stateB?[key]?.start
 							isDefault: false
 
 						row = new pRow
@@ -1705,7 +1705,7 @@ class SpecPanel
 							parent: row
 							className: 'left'
 							unit: ''
-							value: stateA[key].end
+							value: stateA?[key]?.end
 							isDefault: false
 
 						# to
@@ -1713,7 +1713,7 @@ class SpecPanel
 							parent: row
 							className: 'right'
 							unit: ''
-							value: stateB[key].end
+							value: stateB?[key]?.end
 							isDefault: false
 
 						row = new pRow
@@ -1725,7 +1725,7 @@ class SpecPanel
 							parent: row
 							className: 'left'
 							unit: ''
-							value: stateA[key].angle
+							value: stateA?[key]?.angle
 							isDefault: false
 
 						# to
@@ -1733,7 +1733,7 @@ class SpecPanel
 							parent: row
 							className: 'right'
 							unit: ''
-							value: stateB[key].angle
+							value: stateB?[key]?.angle
 							isDefault: false
 
 					else
@@ -1747,7 +1747,7 @@ class SpecPanel
 							parent: row
 							className: 'left'
 							unit: ''
-							value: stateA[key]
+							value: stateA?[key]
 							isDefault: false
 
 						# to
@@ -1755,7 +1755,7 @@ class SpecPanel
 							parent: row
 							className: 'right'
 							unit: ''
-							value: stateB[key]
+							value: stateB?[key]
 							isDefault: false
 
 			# ---------------
