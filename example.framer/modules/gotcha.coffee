@@ -41,58 +41,12 @@ document.getElementsByClassName('DevicePhone')[0]?.classList.add('IgnorePointerE
 
 
 Utils.insertCSS """
-	
-	#SpecContainer {
-		position: absolute;
-		right: 0;
-		top: 0;
-		bottom: 0;
-		width: 224px;
-		background-color: rgba(20, 20, 20, 1.000);
-		border-left: 1px solid rgba(45, 45, 45, 1.000);
-		pointer-events: all;
-		white-space: nowrap;
-		cursor: default;
-	}
 
-	.SpecLabel {
-		position: absolute;
-	}
-
-	.SpecSelectable {
-		cursor: pointer;
-		-webkit-box-sizing: border-box;
-		-moz-box-sizing: border-box;
-		box-sizing: border-box;
-	}
-
-	.SpecSelectable:hover {
-		outline: 1px solid rgba(72, 207, 255, 1.000) !important;
-	}
-
-	.SpecSelectable:active {
-		outline: 1px solid rgba(255, 1, 255, 1.000) !important;
-	}
-
-	@-webkit-keyframes showCopied {
-		0% { 
-			border-color: rgba(118, 237, 93, 1.000);
-		}
-
-		100% {
-			border-color: rgba(0, 0, 0, 1.000);
-		}
-	}
-
-	.copied {
-		background-color: red;
-	}
-
-	.mememeLink {
+	.logo {
 		opacity: .4;
 	}
 
-	.mememeLink:hover {
+	.logo:hover {
 		opacity: 1;
 	}
 	
@@ -831,7 +785,7 @@ class pAccordian extends pRow
 		@body.element.addEventListener 'click', (event) -> 
 			event.stopPropagation()
 
-
+		@toggle() # start open
 
 	toggle: =>
 		@toggled = !@toggled
@@ -949,17 +903,6 @@ class SpecPanel
 			className: 'full'
 			unit: ''
 
-
-
-
-
-
-
-
-
-
-
-
 		# ------------------------------------
 		# divider
 
@@ -1007,7 +950,7 @@ class SpecPanel
 			parent: row, 
 			className: 'left'
 
-		# ------------------
+		# ----------------------------------------
 		# gradient
 
 		@gradientPropertiesDiv = new pDiv
@@ -1054,27 +997,8 @@ class SpecPanel
 			unit: ''
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 		# ------------------------------------
-		# divider
+		# border properties
 
 		@borderPropertiesDiv = new pDiv
 
@@ -1160,12 +1084,8 @@ class SpecPanel
 			unit: 'b'
 			default: '0'
 
-
-
 		# ------------------------------------
 		# text styles
-
-
 
 		@textPropertiesDiv = new pDiv
 
@@ -1271,7 +1191,7 @@ class SpecPanel
 
 
 		# ------------------------------------
-		# transform
+		# transform properties
 
 
 		@transformsDiv = new pDiv
@@ -1406,26 +1326,8 @@ class SpecPanel
 			default: ''
 
 
-
-
-
-
-
-
-
-
-		
-
-
-
-
-
-
-
-
-
 		# ------------------------------------
-		# filters
+		# filters properties
 
 
 		@filtersDiv = new pDiv
@@ -1544,6 +1446,121 @@ class SpecPanel
 		# -------------------------- end filters
 
 
+		# ------------------------------------
+		# effects properties
+
+
+		@effectsDiv = new pDiv
+
+		new pDivider
+			parent: @effectsDiv
+
+		@effectsAcco = new pAccordian
+			text: 'Effects'
+			parent: @effectsDiv
+
+
+		# ------------------
+		# background filters
+
+		row = new pRow
+			parent: @effectsAcco.body
+			text: 'Blending'
+
+		@blendingBox = new pInput
+			parent: row
+			section: @effectsDiv
+			className: 'full'
+			unit: ''
+			default: 'normal'
+
+		row = new pRow
+			parent: @effectsAcco.body
+			text: 'Blur'
+
+		@backgroundBlurBox = new pInput
+			parent: row
+			section: @effectsDiv
+			className: 'left'
+			unit: ''
+
+
+		row = new pRow
+			parent: @effectsAcco.body
+			text: 'Brightness'
+
+		@backgroundBrightnessBox = new pInput
+			parent: row
+			section: @effectsDiv
+			className: 'left'
+			unit: ''
+
+
+		row = new pRow
+			parent: @effectsAcco.body
+			text: 'Saturate'
+
+		@backgroundSaturateBox = new pInput
+			parent: row
+			section: @effectsDiv
+			className: 'left'
+			unit: ''
+
+
+		row = new pRow
+			parent: @effectsAcco.body
+			text: 'hueRotate'
+
+		@backgroundHueRotateBox = new pInput
+			parent: row
+			section: @effectsDiv
+			className: 'left'
+			unit: ''
+
+
+		row = new pRow
+			parent: @effectsAcco.body
+			text: 'Contrast'
+
+		@backgroundContrastBox = new pInput
+			parent: row
+			section: @effectsDiv
+			className: 'left'
+			unit: ''
+
+
+		row = new pRow
+			parent: @effectsAcco.body
+			text: 'Invert'
+
+		@backgroundInvertBox = new pInput
+			parent: row
+			section: @effectsDiv
+			className: 'left'
+			unit: ''
+
+
+		row = new pRow
+			parent: @effectsAcco.body
+			text: 'Grayscale'
+
+		@backgroundGrayscaleBox = new pInput
+			parent: row
+			section: @effectsDiv
+			className: 'left'
+			unit: ''
+
+
+		row = new pRow
+			parent: @effectsAcco.body
+			text: 'Sepia'
+
+		@backgroundSepiaBox = new pInput
+			parent: row
+			section: @effectsDiv
+			className: 'left'
+			unit: ''
+
 
 
 		# image --------------------------------
@@ -1578,22 +1595,24 @@ class SpecPanel
 		@linkedinIcon = document.createElement('a')
 		_.assign @linkedinIcon,
 			href: "http://www.linkedin.com/in/steveruizok"
-			innerHTML: '<svg xmlns="http://www.w3.org/2000/svg" id="linkedin_logo" class="mememeLink" width="20" height="20" fill="rgba(91, 91, 91, 1.000)" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>'
+			innerHTML: '<svg xmlns="http://www.w3.org/2000/svg" id="linkedin_logo" class="logo" width="20" height="20" fill="rgba(91, 91, 91, 1.000)" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>'
 
 		@githubIcon = document.createElement('a')
 		_.assign @githubIcon,
 			href: "http://github.com/steveruizok/gotcha"
-			innerHTML: '<svg height="20px" width="20px" id="github_logo" class="mememeLink" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><path fill="rgba(91, 91, 91, 1.000)" d="M512 0C229.25 0 0 229.25 0 512c0 226.25 146.688 418.125 350.156 485.812 25.594 4.688 34.938-11.125 34.938-24.625 0-12.188-0.469-52.562-0.719-95.312C242 908.812 211.906 817.5 211.906 817.5c-23.312-59.125-56.844-74.875-56.844-74.875-46.531-31.75 3.53-31.125 3.53-31.125 51.406 3.562 78.47 52.75 78.47 52.75 45.688 78.25 119.875 55.625 149 42.5 4.654-33 17.904-55.625 32.5-68.375C304.906 725.438 185.344 681.5 185.344 485.312c0-55.938 19.969-101.562 52.656-137.406-5.219-13-22.844-65.094 5.062-135.562 0 0 42.938-13.75 140.812 52.5 40.812-11.406 84.594-17.031 128.125-17.219 43.5 0.188 87.312 5.875 128.188 17.281 97.688-66.312 140.688-52.5 140.688-52.5 28 70.531 10.375 122.562 5.125 135.5 32.812 35.844 52.625 81.469 52.625 137.406 0 196.688-119.75 240-233.812 252.688 18.438 15.875 34.75 47 34.75 94.75 0 68.438-0.688 123.625-0.688 140.5 0 13.625 9.312 29.562 35.25 24.562C877.438 930 1024 738.125 1024 512 1024 229.25 794.75 0 512 0z" /></svg>'
+			innerHTML: '<svg height="20px" width="20px" id="github_logo" class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><path fill="rgba(91, 91, 91, 1.000)" d="M512 0C229.25 0 0 229.25 0 512c0 226.25 146.688 418.125 350.156 485.812 25.594 4.688 34.938-11.125 34.938-24.625 0-12.188-0.469-52.562-0.719-95.312C242 908.812 211.906 817.5 211.906 817.5c-23.312-59.125-56.844-74.875-56.844-74.875-46.531-31.75 3.53-31.125 3.53-31.125 51.406 3.562 78.47 52.75 78.47 52.75 45.688 78.25 119.875 55.625 149 42.5 4.654-33 17.904-55.625 32.5-68.375C304.906 725.438 185.344 681.5 185.344 485.312c0-55.938 19.969-101.562 52.656-137.406-5.219-13-22.844-65.094 5.062-135.562 0 0 42.938-13.75 140.812 52.5 40.812-11.406 84.594-17.031 128.125-17.219 43.5 0.188 87.312 5.875 128.188 17.281 97.688-66.312 140.688-52.5 140.688-52.5 28 70.531 10.375 122.562 5.125 135.5 32.812 35.844 52.625 81.469 52.625 137.406 0 196.688-119.75 240-233.812 252.688 18.438 15.875 34.75 47 34.75 94.75 0 68.438-0.688 123.625-0.688 140.5 0 13.625 9.312 29.562 35.25 24.562C877.438 930 1024 738.125 1024 512 1024 229.25 794.75 0 512 0z" /></svg>'
 
 		@twitterIcon = document.createElement('a')
 		_.assign @twitterIcon,
 			href: "http://twitter.com/steveruizok"
-			innerHTML: '<svg height="28px" width="28px" id="twitter_logo" class="mememeLink" data-name="Logo — FIXED" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><defs><style>.cls-1{fill:none;}.cls-2{fill:rgba(91, 91, 91, 1.000);}</style></defs><title>Twitter_Logo_Blue</title><rect class="cls-1" width="400" height="400"/><path class="cls-2" d="M153.62,301.59c94.34,0,145.94-78.16,145.94-145.94,0-2.22,0-4.43-.15-6.63A104.36,104.36,0,0,0,325,122.47a102.38,102.38,0,0,1-29.46,8.07,51.47,51.47,0,0,0,22.55-28.37,102.79,102.79,0,0,1-32.57,12.45,51.34,51.34,0,0,0-87.41,46.78A145.62,145.62,0,0,1,92.4,107.81a51.33,51.33,0,0,0,15.88,68.47A50.91,50.91,0,0,1,85,169.86c0,.21,0,.43,0,.65a51.31,51.31,0,0,0,41.15,50.28,51.21,51.21,0,0,1-23.16.88,51.35,51.35,0,0,0,47.92,35.62,102.92,102.92,0,0,1-63.7,22A104.41,104.41,0,0,1,75,278.55a145.21,145.21,0,0,0,78.62,23"/></svg>'
+			innerHTML: '<svg height="28px" width="28px" id="twitter_logo" class="logo" data-name="Logo — FIXED" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><defs><style>.cls-1{fill:none;}.cls-2{fill:rgba(91, 91, 91, 1.000);}</style></defs><title>Twitter_Logo_Blue</title><rect class="cls-1" width="400" height="400"/><path class="cls-2" d="M153.62,301.59c94.34,0,145.94-78.16,145.94-145.94,0-2.22,0-4.43-.15-6.63A104.36,104.36,0,0,0,325,122.47a102.38,102.38,0,0,1-29.46,8.07,51.47,51.47,0,0,0,22.55-28.37,102.79,102.79,0,0,1-32.57,12.45,51.34,51.34,0,0,0-87.41,46.78A145.62,145.62,0,0,1,92.4,107.81a51.33,51.33,0,0,0,15.88,68.47A50.91,50.91,0,0,1,85,169.86c0,.21,0,.43,0,.65a51.31,51.31,0,0,0,41.15,50.28,51.21,51.21,0,0,1-23.16.88,51.35,51.35,0,0,0,47.92,35.62,102.92,102.92,0,0,1-63.7,22A104.41,104.41,0,0,1,75,278.55a145.21,145.21,0,0,0,78.62,23"/></svg>'
 
 		for element in [@linkedinIcon, @githubIcon, @twitterIcon]
 			@socialMediaRow.element.appendChild(element)
 			@socialMediaRow.element.classList.add('socialLinks')
 
+		@hideDivs()
+		@clearProps()
 	
 	showProperties: (layer, customProps) =>
 
@@ -1604,20 +1623,14 @@ class SpecPanel
 
 		_.assign defaults,
 			rotation: defaults.rotationZ
+			blending: {default: 'normal'}
 
-		for div in [
-			@gradientPropertiesDiv,
-			@textPropertiesDiv,
-			@shadowPropertiesDiv,
-			@imagePropertiesDiv,
-			@filtersDiv,
-			@transformsDiv,
-			@borderPropertiesDiv
-			]
-			div.visible = false
+		@hideDivs()
 
 		for key, value of _.merge(layer.props, customProps)
+
 			propLayer = @[key + 'Box']
+
 			if not propLayer
 				continue
 
@@ -1628,10 +1641,11 @@ class SpecPanel
 
 	showProperty: (key, value, propLayer, def) =>
 
-		propLayer.isDefault = value is def
+		propLayer.isDefault = false
 
-		if not value? or _.isNaN(value)
+		if not value? or _.isNaN(value) or value is def
 			value = def ? ''
+			propLayer.isDefault = true
 
 		# color
 		if Color.isColor(value)
@@ -1657,45 +1671,19 @@ class SpecPanel
 		# numer
 		propLayer.value = parseInt(value, 10).toFixed()
 
-	setVisibility: (layer, bool) ->
-		if bool
-			layer.element.classList.add('hidden')
-			return
-
-		layer.element.classList.remove('hidden')
-
-	# defineCustomProperty: (variableName, layer, float) =>
-	# 	Object.defineProperty @,
-	# 		variableName,
-	# 		get: => return @props[variableName]
-	# 		set: (value) =>
-	# 			@props[variableName] = value
-
-	# 			if not value? or value is '0'
-	# 				layer.value = ''
-	# 				return
-
-	# 			if float
-	# 				layer.value = parseFloat(value ? '0').toFixed(2)
-	# 				return
-
-	# 			if typeof value is 'number'
-	# 				value = parseInt(value).toFixed()
-
-	# 			layer.value = value
-
-	# 	layer.default = @defaults[variableName]?.default ? ''
-
-	# addCopyEvent: (layer) ->
-	# 	do (layer) =>
-	# 		layer.element.addEventListener 'click', =>
-	# 			@copyValue(layer)
-
-	# copyValue: (layer) =>
-	# 	secretBox.value = layer.value
-	# 	secretBox.select()
-	# 	document.execCommand('copy')
-	# 	secretBox.blur()
+	hideDivs: =>
+		for div in [
+			@gradientPropertiesDiv,
+			@textPropertiesDiv,
+			@shadowPropertiesDiv,
+			@imagePropertiesDiv,
+			@filtersDiv,
+			@transformsDiv,
+			@borderPropertiesDiv,
+			@effectsDiv
+		]
+		
+			div.visible = false
 
 	clearProps: =>
 		for prop in @propLayers
@@ -2219,7 +2207,7 @@ class Gotcha
 	# set the panel with current properties
 	setPanelProperties: () =>
 
-		# decice which layer to use for panel props
+		# decide which layer to use for panel props
 		if @selectedLayer? and @selectedLayer isnt Framer.Device.screen
 			layer = @selectedLayer
 		else if @hoveredLayer?
@@ -2228,6 +2216,7 @@ class Gotcha
 			@specPanel.clearProps()
 			return
 
+		# properties to assigned to layer.props
 		customProps =
 			x: layer.screenFrame.x
 			y: layer.screenFrame.y
@@ -2235,11 +2224,14 @@ class Gotcha
 			componentNames: @getComponentFromLayer(layer.parent)
 			parentName: layer.parent?.name
 			rotation: layer.rotationZ
-			gradientStart: layer.gradient?.start
-			gradientEnd: layer.gradient?.end
-			gradientAngle: layer.gradient?.angle
 			textAlign: layer.props.styledTextOptions?.alignment
+			blending: layer.blending
 		
+		if layer.gradient?
+			_.assign customProps,
+				gradientStart: layer.gradient.start
+				gradientEnd: layer.gradient.end
+				gradientAngle: layer.gradient.angle
 
 		if layer.shadows?
 			_.assign customProps,
@@ -2256,8 +2248,6 @@ class Gotcha
 	setHoveredLayer: (event) =>
 		return if not @enabled
 		return if not event
-		return if event.target.classList.contains('SpecElement')
-		return if event.target.classList.contains('mememeLink')
 		
 		@hoveredLayer = @getLayerFromElement(event?.target)
 		@tryFocus(event)

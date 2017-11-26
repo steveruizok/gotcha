@@ -2,11 +2,11 @@
   "orientation" : 0,
   "updateDelay" : 0.3,
   "designModeSelected" : 0,
-  "cachedDeviceHeight" : 812,
+  "cachedDeviceHeight" : 1024,
   "contentScale" : 2,
   "fullScreen" : false,
-  "cachedDeviceWidth" : 375,
-  "deviceType" : "apple-iphone-x-space-gray",
+  "cachedDeviceWidth" : 768,
+  "deviceType" : "apple-ipad-air-2-gold",
   "sharedPrototype" : true,
   "propertyPanelToggleStates" : {
     "Filters" : true
@@ -17,14 +17,14 @@
   "showBezel" : true,
   "foldedCodeRanges" : [
     "{96, 647}",
-    "{744, 607}",
-    "{1352, 1169}",
-    "{2535, 547}",
-    "{3083, 486}",
-    "{3570, 200}",
-    "{3771, 203}",
-    "{3975, 203}",
-    "{4179, 216}"
+    "{744, 671}",
+    "{1416, 1169}",
+    "{2599, 547}",
+    "{3147, 486}",
+    "{3634, 200}",
+    "{3835, 203}",
+    "{4039, 203}",
+    "{4243, 216}"
   ],
   "deviceScale" : "fit"
 }

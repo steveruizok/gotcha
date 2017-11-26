@@ -55,7 +55,12 @@ class CTA extends Layer
 			height: 44
 			width: 128
 			text: 'Click Me'
-			backgroundColor: 'rgba(0, 170, 255, 1.000)'
+			gradient:
+				start: '#0070ff'
+				end: '#00aaff'
+				angle: 15
+			borderWidth: 1
+			borderColor: '#00aaff'
 		
 		@action = -> null
 		
@@ -316,11 +321,14 @@ getStarted.action = showSteps1
 
 start()
 
-layer = new Layer
-	point: Align.center
-	shadowX: 1
-	shadowSpread: 2
-	shadowColor: 'red'
-	gradient:
-		start: 'blue'
-		end: 'green'
+blender = new Layer
+	blending: 'hardLight'
+	backgroundColor: 'red'
+	opacity: .5
+	
+blender = new Layer
+	blending: 'darken'
+	backgroundColor: 'red'
+	opacity: .5
+	y: 454
+	x: 454
