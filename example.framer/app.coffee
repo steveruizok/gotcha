@@ -321,3 +321,6 @@ layer = new Layer
 	shadowX: 1
 	shadowSpread: 2
 	shadowColor: 'red'
+	gradient:
+		start: 'blue'
+		end: 'green'

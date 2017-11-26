@@ -436,7 +436,7 @@ Utils.insertCSS """
 	.pDivider {
 		height: 1px;
 		background-color: #000;
-		margin: 8px 8px 16px 8px;
+		margin: 16px 8px 16px 8px;
 	}
 
 	.pAccordian {
@@ -502,8 +502,8 @@ class pDiv
 					@element.classList.remove('hidden')
 					return
 
-				
 				@element.classList.add('hidden')
+
 
 # ---------------------
 # Row
@@ -610,14 +610,20 @@ class pInput
 			get: -> return @_value
 			set: (value) ->
 				@_value = value
-				@element.value = value ? String(@default)
+				if not value? or value is ""
+					value = String(@default)
+
+				@element.value = value
+
+				Utils.delay 0, =>
+					if value? and not @isDefault and value isnt ""
+						@section?.visible = true
 
 		Object.defineProperty @, 
 			'isDefault',
 			get: -> return @_isDefault
 			set: (bool) ->
 				@_isDefault = bool
-				@section?.visible = !bool
 
 				if bool
 					@element.classList.remove('hasValue')
@@ -706,7 +712,8 @@ class pColor
 				if value?.color is 'transparent'
 					value = null
 
-				@section?.visible = value?
+				if value? and value isnt ''
+					@section?.visible = true
 
 				@_value = value
 				@element.style['background-color'] = value
@@ -823,6 +830,8 @@ class pAccordian extends pRow
 
 		@body.element.addEventListener 'click', (event) -> 
 			event.stopPropagation()
+
+
 
 	toggle: =>
 		@toggled = !@toggled
@@ -1010,10 +1019,14 @@ class SpecPanel
 		@gradientStartBox = new pColor
 			parent: row
 			className: 'left'
+			section: @gradientPropertiesDiv
+			default: null
 
 		@gradientEndBox = new pColor
 			parent: row
 			className: 'right'
+			section: @gradientPropertiesDiv
+			default: null
 
 		# ------------------
 		# gradient angle
@@ -1022,10 +1035,12 @@ class SpecPanel
 			parent: @gradientPropertiesDiv
 			text: ''
 
-		@gradientStartBox = new pInput
+		@gradientAngleBox = new pInput
 			parent: row
 			className: 'left'
 			unit: 'a'
+			section: @gradientPropertiesDiv
+			default: null
 
 		# ------------------
 		# opacity
@@ -1058,20 +1073,18 @@ class SpecPanel
 
 
 
-
-
-
-
 		# ------------------------------------
 		# divider
 
-		new pDivider
+		@borderPropertiesDiv = new pDiv
+
 
 		# ------------------
 		# border
 
 		row = new pRow
 			text: 'Border'
+			parent: @borderPropertiesDiv
 
 		@borderColorBox = new pColor
 			parent: row
@@ -1081,17 +1094,20 @@ class SpecPanel
 			parent: row
 			className: 'right'
 			unit: 'w'
+			section: @borderPropertiesDiv
 
 		# ------------------
 		# radius
 
 		row = new pRow
 			text: 'Radius'
+			parent: @borderPropertiesDiv
 
 		@borderRadiusBox = new pInput
 			parent: row
 			className: 'left'
 			unit: ''
+			section: @borderPropertiesDiv
 
 		# ------------------
 		# shadow
@@ -1179,7 +1195,6 @@ class SpecPanel
 
 		@colorBox = new pColor
 			parent: row
-			section: @textPropertiesDiv
 			className: 'left'
 
 		@fontSizeBox = new pInput
@@ -1232,13 +1247,14 @@ class SpecPanel
 			parent: row
 			section: @textPropertiesDiv
 			className: 'left'
-			unit: 'c'
+			unit: 'lt'
+			default: '1'
 
 		@lineHeightBox = new pInput
 			parent: row
 			section: @textPropertiesDiv
 			className: 'right'
-			unit: 'l'
+			unit: 'ln'
 
 		# ------------------
 		# text
@@ -1257,10 +1273,16 @@ class SpecPanel
 		# ------------------------------------
 		# transform
 
+
+		@transformsDiv = new pDiv
+
 		new pDivider
+			parent: @transformsDiv
 
 		@transformsAcco = new pAccordian
 			text: 'Transforms'
+			parent: @transformsDiv
+
 
 		# ------------------
 		# scale
@@ -1271,7 +1293,7 @@ class SpecPanel
 
 		@scaleBox = new pInput
 			parent: row
-			section: @transformsAcco
+			section: @transformsDiv
 			className: 'left'
 			unit: ''
 
@@ -1281,13 +1303,13 @@ class SpecPanel
 
 		@scaleXBox = new pInput
 			parent: row
-			section: @transformsAcco
+			section: @transformsDiv
 			className: 'left'
 			unit: 'x'
 
 		@scaleYBox = new pInput
 			parent: row
-			section: @transformsAcco
+			section: @transformsDiv
 			className: 'right'
 			unit: 'y'
 
@@ -1300,7 +1322,7 @@ class SpecPanel
 
 		@rotationBox = new pInput
 			parent: row
-			section: @transformsAcco
+			section: @transformsDiv
 			className: 'left'
 			unit: ''
 
@@ -1310,13 +1332,13 @@ class SpecPanel
 
 		@rotationXBox = new pInput
 			parent: row
-			section: @transformsAcco
+			section: @transformsDiv
 			className: 'left'
 			unit: 'x'
 
 		@rotationYBox = new pInput
 			parent: row
-			section: @transformsAcco
+			section: @transformsDiv
 			className: 'right'
 			unit: 'y'
 
@@ -1330,13 +1352,13 @@ class SpecPanel
 
 		@originXBox = new pInput
 			parent: row
-			section: @transformsAcco
+			section: @transformsDiv
 			className: 'left'
 			unit: 'x'
 
 		@originYBox = new pInput
 			parent: row
-			section: @transformsAcco
+			section: @transformsDiv
 			className: 'right'
 			unit: 'y'
 
@@ -1349,7 +1371,7 @@ class SpecPanel
 
 		@skewBox = new pInput
 			parent: row
-			section: @transformsAcco
+			section: @transformsDiv
 			className: 'left'
 			unit: ''
 
@@ -1359,13 +1381,13 @@ class SpecPanel
 
 		@skewXBox = new pInput
 			parent: row
-			section: @transformsAcco
+			section: @transformsDiv
 			className: 'left'
 			unit: 'x'
 
 		@skewYBox = new pInput
 			parent: row
-			section: @transformsAcco
+			section: @transformsDiv
 			className: 'right'
 			unit: 'y'
 
@@ -1378,9 +1400,10 @@ class SpecPanel
 
 		@perspectiveBox = new pInput
 			parent: row
-			section: @transformsAcco
+			section: @transformsDiv
 			className: 'left'
 			unit: ''
+			default: ''
 
 
 
@@ -1404,7 +1427,14 @@ class SpecPanel
 		# ------------------------------------
 		# filters
 
+
+		@filtersDiv = new pDiv
+
+		new pDivider
+			parent: @filtersDiv
+
 		@filtersAcco = new pAccordian
+			parent: @filtersDiv
 			text: 'Filters'
 
 		# ------------------
@@ -1416,7 +1446,7 @@ class SpecPanel
 
 		@blurBox = new pInput
 			parent: row
-			section: @filtersAcco
+			section: @filtersDiv
 			className: 'left'
 			unit: ''
 
@@ -1429,7 +1459,7 @@ class SpecPanel
 
 		@brightnessBox = new pInput
 			parent: row
-			section: @filtersAcco
+			section: @filtersDiv
 			className: 'left'
 			unit: ''
 
@@ -1442,7 +1472,7 @@ class SpecPanel
 
 		@contrastBox = new pInput
 			parent: row
-			section: @filtersAcco
+			section: @filtersDiv
 			className: 'left'
 			unit: ''
 
@@ -1455,7 +1485,7 @@ class SpecPanel
 
 		@grayscaleBox = new pInput
 			parent: row
-			section: @filtersAcco
+			section: @filtersDiv
 			className: 'left'
 			unit: ''
 
@@ -1468,7 +1498,7 @@ class SpecPanel
 
 		@hueRotateBox = new pInput
 			parent: row
-			section: @filtersAcco
+			section: @filtersDiv
 			className: 'left'
 			unit: ''
 
@@ -1481,7 +1511,7 @@ class SpecPanel
 
 		@invertBox = new pInput
 			parent: row
-			section: @filtersAcco
+			section: @filtersDiv
 			className: 'left'
 			unit: ''
 
@@ -1494,7 +1524,7 @@ class SpecPanel
 
 		@saturateBox = new pInput
 			parent: row
-			section: @filtersAcco
+			section: @filtersDiv
 			className: 'left'
 			unit: ''
 
@@ -1507,7 +1537,7 @@ class SpecPanel
 
 		@sepiaBox = new pInput
 			parent: row
-			section: @filtersAcco
+			section: @filtersDiv
 			className: 'left'
 			unit: ''
 
@@ -1525,10 +1555,6 @@ class SpecPanel
 
 		# ------------------
 		# image
-
-		row = new pRow
-			parent: @imagePropertiesDiv
-			text: 'Image'
 
 		@imageBox = new pImage
 			parent: @imagePropertiesDiv
@@ -1574,89 +1600,47 @@ class SpecPanel
 		props = layer.props
 		_.assign props, customProps
 
+		defaults = layer._propertyList()
+
+		_.assign defaults,
+			rotation: defaults.rotationZ
+
+		for div in [
+			@gradientPropertiesDiv,
+			@textPropertiesDiv,
+			@shadowPropertiesDiv,
+			@imagePropertiesDiv,
+			@filtersDiv,
+			@transformsDiv,
+			@borderPropertiesDiv
+			]
+			div.visible = false
+
 		for key, value of _.merge(layer.props, customProps)
 			propLayer = @[key + 'Box']
 			if not propLayer
 				continue
 
-			def = layer._propertyList()[key]?.default
+			def = defaults[key]?.default
 			
 			@showProperty(key, value, propLayer, def)
 
-		# @setVisibility(
-		# 	'shadowPropertiesDiv',
-		# 	layer.shadows?
-		# 	)
-
-		# @setVisibility(
-		# 	'gradientPropertiesDiv', 
-		# 	layer.gradient?
-		# 	)
-
-		# @setVisibility(
-		# 	'textPropertiesDiv', 
-		# 	layer.text?
-		# 	)
-
-		# @setVisibility(
-		# 	'imagePropertiesDiv', 
-		# 	layer.image isnt ''
-		# 	)
-
-		# more complex section specific visibility checks
-		# if any of the properties aren't a default...
-
-		# isException = (prop) -> not isDefault(prop)
-
-		# hasExceptions = (properties = []) ->
-		# 	return _.some( _.map( properties, isException ) )
-		
-		# filters = [
-		# 	'blur',
-		# 	'grayscale',
-		# 	'hueRotate',
-		# 	'invert',
-		# 	'sepia',
-		# 	'brightness',
-		# 	'contrast',
-		# 	'saturate',
-		# 	]
-
-		# transforms = [
-		# 	'skew',
-		# 	'skewX',
-		# 	'skewY',
-		# 	'scale',
-		# 	'scaleX',
-		# 	'scaleY',
-		# 	'rotationX',
-		# 	'rotationY',
-		# 	'rotationZ',
-		# 	'originX',
-		# 	'originY',
-		# 	'perspective',
-		# 	]
-
-		# @setVisibility(
-		# 	'transformsAcco', 
-		# 	hasExceptions(transforms)
-		# 	)
-
-		# @setVisibility(
-		# 	'filtersAcco', 
-		# 	hasExceptions(filters)
-		# 	)
 
 	showProperty: (key, value, propLayer, def) =>
 
 		propLayer.isDefault = value is def
 
 		if not value? or _.isNaN(value)
-			value = propLayer.default ? ''
+			value = def ? ''
 
 		# color
 		if Color.isColor(value)
-			value = value.color
+			value = value.toHslString()
+
+		# gradient
+		if value?.constructor?.name is 'Gradient'
+			propLayer.value = ''
+			return
 
 		# string
 		if typeof value is 'string'
@@ -2244,15 +2228,18 @@ class Gotcha
 			@specPanel.clearProps()
 			return
 
-		# get the layer's properties
-		# props = layer.props
-
 		customProps =
 			x: layer.screenFrame.x
 			y: layer.screenFrame.y
 			componentName: layer.constructor.name
 			componentNames: @getComponentFromLayer(layer.parent)
 			parentName: layer.parent?.name
+			rotation: layer.rotationZ
+			gradientStart: layer.gradient?.start
+			gradientEnd: layer.gradient?.end
+			gradientAngle: layer.gradient?.angle
+			textAlign: layer.props.styledTextOptions?.alignment
+		
 
 		if layer.shadows?
 			_.assign customProps,
@@ -2265,71 +2252,6 @@ class Gotcha
 
 		@specPanel.showProperties(layer, customProps)
 
-		# _.assign @specPanel, props
-
-		# show or hide panels depending on whether values have been set
-
-		# defaultProperties = layer._propertyList()
-
-		# isDefault = (property) ->
-		# 	def = defaultProperties[property]?.default
-		# 	return !def? or layer[property] is def
-
-		# isException = (prop) -> not isDefault(prop)
-
-		# hasExceptions = (properties = []) ->
-		# 	return _.some( _.map( properties, isException ) )
-		
-		# filters = [
-		# 	'blur',
-		# 	'grayscale',
-		# 	'hueRotate',
-		# 	'invert',
-		# 	'sepia',
-		# 	'brightness',
-		# 	'contrast',
-		# 	'saturate',
-		# 	]
-
-		# transforms = [
-		# 	'skew',
-		# 	'skewX',
-		# 	'skewY',
-		# 	'scale',
-		# 	'scaleX',
-		# 	'scaleY',
-		# 	'rotationX',
-		# 	'rotationY',
-		# 	'rotationZ',
-		# 	'originX',
-		# 	'originY',
-		# 	'perspective',
-		# 	]
-
-		# @specPanel.setVisibility(
-		# 	'textPropertiesDiv',
-		# 	layer.fontFamily?
-		# 	)
-
-		# @specPanel.setVisibility(
-		# 	'gradientPropertiesDiv', 
-		# 	layer.gradient?
-		# 	)
-
-		# @specPanel.setVisibility(
-		# 	'transformsAcco', 
-		# 	hasExceptions(transforms)
-		# 	)
-
-		# @specPanel.setVisibility(
-		# 	'filtersAcco', 
-		# 	hasExceptions(filters)
-		# 	)
-
-		# @specPanel.setVisibility(
-		# 	'imageDiv', 
-		# 	layer.image isnt ''
-		# 	)
 
 	setHoveredLayer: (event) =>
 		return if not @enabled
