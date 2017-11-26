@@ -1,7 +1,8 @@
 # Gotcha Demo
 # @steveruizok
 
-require "gotcha"
+{ gotcha } = require "gotcha"
+gotcha.onlyVisible = true
 
 Screen.backgroundColor = '#000'
 

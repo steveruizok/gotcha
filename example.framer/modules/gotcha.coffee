@@ -36,6 +36,10 @@ ctx = undefined
 startOpen = false
 
 # debugging
+<<<<<<< HEAD
+=======
+# document.addEventListener 'click', (event) -> print event.target.classList
+>>>>>>> master
 
 document.getElementsByClassName('DevicePhone')[0]?.classList.add('IgnorePointerEvents')
 
@@ -858,6 +862,7 @@ class SpecPanel
 			deviceOptions.push (key)
 
 			if key is Framer.Device.deviceType
+<<<<<<< HEAD
 				currentSelected = deviceOptions.length - 1
 
 		row = new pRow
@@ -912,6 +917,41 @@ class SpecPanel
 		# position
 
 		row = new pRow
+=======
+				currentKey = _.indexOf(
+					_.keys(Framer.DeviceComponent.Devices), 
+					key
+					)
+
+		@deviceSelect = new SpecDropdownBox
+			top: row(0)
+			left: col1x
+			options: _.uniq(deviceOptions) 
+			selected: currentKey
+			callback: (event) ->
+				device = deviceOptions[@selectedIndex]
+				selected = @options[@selectedIndex]
+
+				screenBg = Screen.backgroundColor
+
+				Framer.Device.deviceType = device.name
+
+				# silly fix
+				Framer.Device._context.devicePixelRatio = 0
+				Utils.delay 0, => 
+					Framer.Device._context.devicePixelRatio = device.value.devicePixelRatio
+
+					Screen.backgroundColor = screenBg
+
+		@specDivider1 = new SpecDivider
+			top: row(1.25, 2)
+
+		# pos
+
+		@posLabel = new SpecLabel
+			top: row(1.75, 2)
+			left: col0x
+>>>>>>> master
 			text: 'Position'
 
 		@xBox = new pInput
@@ -1737,6 +1777,7 @@ class Gotcha
 			layers: []
 			containers: []
 			timer: undefined
+			_onlyVisible: true
 
 		document.addEventListener('keyup', @toggle)
 		Framer.CurrentContext.domEventManager.wrap(window).addEventListener("resize", @update)
@@ -1746,6 +1787,12 @@ class Gotcha
 		@context.childNodes[2].classList.add('IgnorePointerEvents')
 
 
+		Object.defineProperty @,
+			"onlyVisible",
+			get: -> return @_onlyVisible
+			set: (bool) ->
+				return if typeof bool isnt 'boolean'
+				@_onlyVisible = bool
 
 		Framer.Device.on "change:deviceType", =>
 			Utils.delay 0, @update
@@ -1793,10 +1840,13 @@ class Gotcha
 			if open
 				Framer.Device.screen.on Events.MouseOver, @setHoveredLayer
 				Framer.Device.screen.on Events.MouseOut, @unsetHoveredLayer
+				Framer.Device.background.on Events.MouseOver, @unsetHoveredLayer
 				Framer.Device.screen.on Events.Click, @setSelectedLayer
+
 			else
 				Framer.Device.screen.off Events.MouseOver, @setHoveredLayer
 				Framer.Device.screen.off Events.MouseOut, @unsetHoveredLayer
+				Framer.Device.background.off Events.MouseOver, @unsetHoveredLayer
 				Framer.Device.screen.off Events.Click, @setSelectedLayer
 
 			@focus()
@@ -1840,35 +1890,6 @@ class Gotcha
 
 		ctx.setContext()
 		@focus()
-
-	# Find an element that belongs to a Framer Layer
-	findLayerElement: (element) ->
-		return if not element
-		return if not element.classList
-
-		if element.classList.contains('framerLayer')
-			return element
-
-		@findLayerElement(element.parentNode)
-
-	# Find a Framer Layer that matches a Framer Layer element
-	getLayerFromElement: (element) =>
-		return if not element
-
-		element = @findLayerElement(element)
-		layer = _.find(Framer.CurrentContext._layers, ['_element', element])
-
-		return layer
-
-	# Find a non-standard Component that includes a Layer
-	getComponentFromLayer: (layer, names = []) =>
-		if not layer
-			return names.join(', ')
-
-		if not _.includes(["Layer", "TextLayer", "ScrollComponent"], layer.constructor.name)
-			names.push(layer.constructor.name)
-
-		@getComponentFromLayer(layer.parent, names)
 
 	# get the dimensions of an element
 	getDimensions: (element) =>
@@ -2247,14 +2268,22 @@ class Gotcha
 
 	setHoveredLayer: (event) =>
 		return if not @enabled
+<<<<<<< HEAD
 		return if not event
 		
 		@hoveredLayer = @getLayerFromElement(event?.target)
-		@tryFocus(event)
+=======
 
-	unsetHoveredLayer: =>
+		layer = @getLayerFromElement(event?.target)
+		return if not @getLayerIsVisible(layer)
+
+		@hoveredLayer = layer
+>>>>>>> master
+		@tryFocus(event)
+		return false
+
+	unsetHoveredLayer: (event) =>
 		@hoveredLayer = undefined
-		if not @selectedLayer? then @unfocus()
 
 	setSelectedLayer: =>
 		return if not @hoveredLayer
@@ -2264,6 +2293,50 @@ class Gotcha
 
 	unsetSelectedLayer: =>
 		@selectedLayer = undefined
+
+
+	# Find an element that belongs to a Framer Layer
+	findLayerElement: (element) ->
+		return if not element
+		return if not element.classList
+
+		if element.classList.contains('framerLayer')
+			return element
+
+		@findLayerElement(element.parentNode)
+
+	# Find a Framer Layer that matches a Framer Layer element
+	getLayerFromElement: (element) =>
+		return if not element
+
+		element = @findLayerElement(element)
+		layer = _.find(Framer.CurrentContext._layers, ['_element', element])
+
+		return layer
+
+	getLayerIsVisible: (layer) =>
+		if not @_onlyVisible
+			return true
+
+		if not layer
+			return true
+
+		if layer.opacity is 0 or layer.visible is false
+			return false
+
+		@getLayerIsVisible(layer.parent)
+
+
+	# Find a non-standard Component that includes a Layer
+	getComponentFromLayer: (layer, names = []) =>
+		if not layer
+			return names.join(', ')
+
+		if not _.includes(["Layer", "TextLayer", "ScrollComponent"], layer.constructor.name)
+			names.push(layer.constructor.name)
+
+		@getComponentFromLayer(layer.parent, names)
+
 
 	# Delay focus by a small amount to prevent flashing
 	tryFocus: (event) =>
