@@ -1839,7 +1839,7 @@ class SpecPanel
 			propLayer.isDefault = true
 
 		# color
-		if Color.isColor(value)
+		if Color.isColorObject(value)
 			value = value.toHslString()
 
 		# gradient
