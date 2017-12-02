@@ -8,6 +8,8 @@ Framer.Extras.Preloader.enable()
 
 Screen.backgroundColor = '#000'
 
+
+
 # BulletItem
 class BulletItem extends Layer
 	constructor: (options = {}) ->
@@ -206,6 +208,7 @@ loaderSplit = new Layer
 
 loading = new Animation loader,
 	rotation: 365
+	borderColor: '#0070f0'
 	options:
 		time: 12
 		looping: true

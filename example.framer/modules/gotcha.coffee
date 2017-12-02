@@ -301,6 +301,42 @@ Utils.insertCSS """
 		pointer-events: none;
 	}
 
+	.pRange {
+		position: absolute;
+		border-radius: 4px;
+		margin-top: 15px;
+		margin-right: 4px;
+		border: 1px solid #000;
+		-webkit-appearance: none;  /* Override default CSS styles */
+		appearance: none;
+		width: 100%; 
+		height: 4px;
+		background: #323232;
+		outline: none;
+		opacity: 1;
+	}
+
+
+	.pRange::-webkit-slider-thumb {
+		border-radius: 8px;
+		-webkit-appearance: none;
+		appearance: none;
+		width: 16px;
+		height: 16px;
+		background: #888888;
+		border: 1px solid #000;
+		cursor: pointer;
+	}
+
+	.pRange::-moz-range-thumb {
+		border-radius: 8px;
+		width: 16px;
+		height: 16px;
+		background: #888888;
+		border: 1px solid #000;
+		cursor: pointer;
+	}
+
 	.pInput {
 		background-color: #292929;
 		border: 1px solid #000;
@@ -420,6 +456,10 @@ Utils.insertCSS """
 		z-index: 100;
 	}
 
+	.strong {
+		font-weight: 600;
+	}
+
 """
 
 # ---------------------
@@ -460,6 +500,7 @@ class pRow extends pDiv
 
 		_.defaults options,
 			text: 'Label'
+			bold: false
 
 		super options
 
@@ -469,6 +510,7 @@ class pRow extends pDiv
 		@label = new pSpan
 			parent: @
 			text: options.text
+			bold: options.bold
 
 # ---------------------
 # Divider
@@ -494,13 +536,56 @@ class pSpan
 		_.defaults options,
 			parent: undefined
 			text: 'hello world'
+			bold: false
 
 		@element = document.createElement('span')
 		@element.classList.add("pSpan")
 		@element.textContent = options.text
 
+		if options.bold
+			@element.classList.add("strong")
+
 		parent = options.parent?.element ? panel
 		parent.appendChild(@element)
+
+
+# ---------------------
+# Range
+
+class pRange
+	constructor: (options = {}) ->
+
+		_.defaults options,
+			parent: null
+			className: 'full'
+			value: ''
+			min: '0'
+			max: '100'
+			value: '100'
+			action: (value) => null
+
+		@element = document.createElement('input')
+		_.assign @element,
+			type: 'range'
+			min: options.min
+			max: options.max
+			value: options.value
+			action: options.action
+
+		@element.classList.add("pRange")
+		@element.classList.add(options.className)
+
+		@element.oninput = => @action(@value)
+
+		parent = options.parent?.element ? panel
+		parent.appendChild(@element)
+
+		Object.defineProperty @, 
+			'value',
+			get: -> return @element.value
+
+		_.assign @,
+			action: options.action
 
 # ---------------------
 # Label
@@ -856,6 +941,12 @@ class SpecPanel
 			if key is Framer.Device.deviceType
 				currentSelected = deviceOptions.length - 1
 
+		# ------------------------------------
+		# framer settings
+
+		# ------------------
+		# device
+
 		row = new pRow
 			text: 'Device'
 
@@ -874,6 +965,26 @@ class SpecPanel
 					bg: Screen.backgroundColor
 
 				window.location.reload()
+
+		# ------------------
+		# animation speed
+
+		row = new pRow
+			text: 'Speed'
+
+		@speedBox = new pRange
+			parent: row
+			className: 'full'
+			unit: ''
+			action: (value) ->
+				base = 0.016666666666666666
+				Framer.Loop.delta = base * _.clamp(value/100, .0000000001, 1)
+
+
+		# ------------------------------------
+		# layer details
+
+		new pDivider
 
 		row = new pRow
 			text: 'Name'
@@ -900,7 +1011,7 @@ class SpecPanel
 			unit: ''
 
 		# ------------------------------------
-		# divider
+		# position details
 
 		new pDivider
 
@@ -1554,12 +1665,21 @@ class SpecPanel
 
 		@animsDiv = new pDiv
 
-		# new pDivider
-		# 	parent: @animsDiv
-
 		@animsAcco = new pAccordian
 			text: 'Animations'
 			parent: @animsDiv
+
+
+
+		# ------------------------------------
+		# event listener properties
+
+
+		@eventListenersDiv = new pDiv
+
+		@eventListenersAcco = new pAccordian
+			text: 'Event Listeners'
+			parent: @eventListenersDiv
 
 
 
@@ -1636,6 +1756,97 @@ class SpecPanel
 		@animsAcco.body.element.removeChild(child)
 		@clearChildrenThenShowAnimations(animations)
 
+	clearChildrenThenShowEventListeners: (eventListeners) =>
+
+		child = @eventListenersAcco.body.element.childNodes[0]
+
+		if not child
+			@showEventListeners(eventListeners)
+			return
+
+		@eventListenersAcco.body.element.removeChild(child)
+		@clearChildrenThenShowEventListeners(eventListeners)
+
+	showEventListeners: (eventListeners = []) =>
+		
+		@eventListenersDiv.visible = eventListeners.length > 0
+
+		for listener, i in eventListeners
+
+			if listener.events.length is 1 and _.includes([
+				"function (){return fn.apply(me,arguments)}", 
+				"function (){return fn.apply(me, arguments)}", 
+				"function (event){return event.preventDefault()}",
+				"function (){ return fn.apply(me, arguments); }",
+				'function debounced(){var time=now(),isInvoking=shouldInvoke(time);if(lastArgs=arguments,lastThis=this,lastCallTime=time,isInvoking){if(timerId===undefined)return leadingEdge(lastCallTime);if(maxing)return timerId=setTimeout(timerExpired,wait),invokeFunc(lastCallTime)}return timerId===undefined&&(timerId=setTimeout(timerExpired,wait)),result}',
+				'function (value){if(null!==value)return"fontSize"!==property&&"font"!==property&&_this._styledText.resetStyle(property),_this.renderText()}',
+				], listener.events[0].function)
+
+				@eventListenersDiv.visible = false
+				continue
+
+			@eventListenersDiv.visible = true
+
+			# --------------------------------
+			# listener
+
+			row = new pRow
+				parent: @eventListenersAcco.body
+				text: '"' + listener.listener + '"'
+				bold: true
+
+			# --------------------------------
+			# events
+
+			for event, e in listener.events
+
+				# name
+
+				row = new pRow
+					parent: @eventListenersAcco.body
+					text: 'Name'
+				
+				box = new pInput
+					parent: row
+					className: 'full'
+					unit: ''
+					value: event.name ? ''
+					isDefault: event.name isnt 'undefined'
+
+				# function
+
+				row = new pRow
+					parent: @eventListenersAcco.body
+					text: 'Function'
+				
+				box = new pInput
+					parent: row
+					className: 'full'
+					unit: ''
+					value: event.function
+					isDefault: false
+
+				# Once
+
+				row = new pRow
+					parent: @eventListenersAcco.body
+					text: 'Once'
+				
+				box = new pInput
+					parent: row
+					className: 'left'
+					unit: ''
+					value: event.once
+					isDefault: event.name isnt 'false'
+
+				unless e is listener.events.length - 1
+					new pDivider
+						parent: @eventListenersAcco.body
+
+			unless i is eventListeners.length - 1
+				new pDivider
+					parent: @eventListenersAcco.body
+
 	showAnimations: (animations) =>
 		
 		@animsDiv.visible = animations.length > 0
@@ -1648,11 +1859,13 @@ class SpecPanel
 			stateB = anim._stateB
 
 			# --------------------------------
+
 			# animation
 
 			row = new pRow
 				parent: @animsAcco.body
 				text: 'Animation ' + (i + 1)
+				bold: true
 
 			fromUnit = new pLabel
 				parent: row 
@@ -1667,96 +1880,119 @@ class SpecPanel
 			for element in [fromUnit.element, toUnit.element]
 				element.classList.add('alignLeft')
 
-
 			# ---------------
 			# properties
 
 			for key, value of properties
 
-				switch key
-					when 'gradient'
+				if Color.isColorObject(value) or Color.isColor(value)
 
-						row = new pRow
-							parent: @animsAcco.body
-							text: 'Grad Start'
-					
-						# from
-						box = new pInput
-							parent: row
-							className: 'left'
-							unit: ''
-							value: stateA?[key]?.start
-							isDefault: false
+					row = new pRow
+						parent: @animsAcco.body
+						text: _.startCase(key)
 
-						# to
-						box = new pInput
-							parent: row
-							className: 'right'
-							unit: ''
-							value: stateB?[key]?.start
-							isDefault: false
+					# from
+					box = new pColor
+						parent: row
+						className: 'left'
+						unit: ''
+						value: stateA?[key]
+						isDefault: false
 
-						row = new pRow
-							parent: @animsAcco.body
-							text: 'Grad End'
-					
-						# from
-						box = new pInput
-							parent: row
-							className: 'left'
-							unit: ''
-							value: stateA?[key]?.end
-							isDefault: false
+					# to
+					box = new pColor
+						parent: row
+						className: 'right'
+						unit: ''
+						value: stateB?[key]
+						isDefault: false
 
-						# to
-						box = new pInput
-							parent: row
-							className: 'right'
-							unit: ''
-							value: stateB?[key]?.end
-							isDefault: false
+				else if key is 'gradient'
 
-						row = new pRow
-							parent: @animsAcco.body
-							text: 'Grad Angle'
-					
-						# from
-						box = new pInput
-							parent: row
-							className: 'left'
-							unit: ''
-							value: stateA?[key]?.angle
-							isDefault: false
+					# start
+					row = new pRow
+						parent: @animsAcco.body
+						text: 'Grad Start'
+				
+					# from
+					box = new pColor
+						parent: row
+						className: 'left'
+						unit: ''
+						value: stateA?[key]?.start
+						isDefault: false
 
-						# to
-						box = new pInput
-							parent: row
-							className: 'right'
-							unit: ''
-							value: stateB?[key]?.angle
-							isDefault: false
+					# to
+					box = new pColor
+						parent: row
+						className: 'right'
+						unit: ''
+						value: stateB?[key]?.start
+						isDefault: false
 
-					else
+					# end
+					row = new pRow
+						parent: @animsAcco.body
+						text: 'Grad End'
+				
+					# from
+					box = new pColor
+						parent: row
+						className: 'left'
+						unit: ''
+						value: stateA?[key]?.end
+						isDefault: false
 
-						row = new pRow
-							parent: @animsAcco.body
-							text: _.startCase(key)
+					# to
+					box = new pColor
+						parent: row
+						className: 'right'
+						unit: ''
+						value: stateB?[key]?.end
+						isDefault: false
 
-						# from
-						box = new pInput
-							parent: row
-							className: 'left'
-							unit: ''
-							value: stateA?[key]
-							isDefault: false
+					# angle
+					row = new pRow
+						parent: @animsAcco.body
+						text: 'Grad Angle'
+				
+					# from 
+					box = new pInput
+						parent: row
+						className: 'left'
+						unit: ''
+						value: stateA?[key]?.angle
+						isDefault: false
 
-						# to
-						box = new pInput
-							parent: row
-							className: 'right'
-							unit: ''
-							value: stateB?[key]
-							isDefault: false
+					# to
+					box = new pInput
+						parent: row
+						className: 'right'
+						unit: ''
+						value: stateB?[key]?.angle
+						isDefault: false
+
+				else
+
+					row = new pRow
+						parent: @animsAcco.body
+						text: _.startCase(key)
+
+					# from
+					box = new pInput
+						parent: row
+						className: 'left'
+						unit: ''
+						value: stateA?[key]
+						isDefault: false
+
+					# to
+					box = new pInput
+						parent: row
+						className: 'right'
+						unit: ''
+						value: stateB?[key]
+						isDefault: false
 
 			# ---------------
 			# options
@@ -2419,9 +2655,11 @@ class Gotcha
 				shadowBlur: layer.shadows[0]?.blur
 
 		@specPanel.showProperties(layer, customProps)
+		
+		eventListeners = @getLayerEventListeners(layer)
+		@specPanel.clearChildrenThenShowEventListeners(eventListeners)
 
 		animations = layer.animations()
-
 		@specPanel.clearChildrenThenShowAnimations(animations)
 
 
@@ -2481,6 +2719,25 @@ class Gotcha
 			return false
 
 		@getLayerIsVisible(layer.parent)
+
+	getLayerEventListeners: (layer) =>
+
+		listeners = _.map(layer._events, (evs, listener, c) ->
+			if not _.isArray(evs) then evs = [evs]
+			
+			{
+				listener: listener
+				events: _.map evs, (ev) ->
+					{
+						name: ev.fn.name
+						function: ev.fn.toString()
+						context: ev.context 
+						once: ev.once
+					}
+			}
+		)
+
+		return listeners
 
 	getScreenshot: (element) =>
 
