@@ -32,6 +32,9 @@ To install manually, download the **gotcha.coffee** file and drag it into your p
 - Hover elements to see information about them.
 - Select an element by tapping on it, or by pressing / while hovered over it.
 - In the spec panel, click any field to copy the field's value.
+- Slow down the global animation speed using the Speed slider.
+- Change devices using the Devices dropdown.
+
 
 ## Tips
 
@@ -41,8 +44,6 @@ To install manually, download the **gotcha.coffee** file and drag it into your p
 ## Planned Features
 
 - Copy formatted CSS from the spec panel.
-- Get detailed animation data from a selected element.
-- Slow down or speed up Framer's animation engine.
 - Give your components custom properties to display.
 
 ## Contact
