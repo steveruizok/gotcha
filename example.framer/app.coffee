@@ -9,7 +9,6 @@ Framer.Extras.Preloader.enable()
 Screen.backgroundColor = '#000'
 
 
-
 # BulletItem
 class BulletItem extends Layer
 	constructor: (options = {}) ->
@@ -93,6 +92,7 @@ class CTA extends Layer
 				angle: 50
 			options:
 				time: 3
+				curve: 'linear'
 				
 		spinBack = spin.reverse()
 		
@@ -100,6 +100,71 @@ class CTA extends Layer
 		spinBack.onAnimationEnd -> spin.start()
 		
 		spin.start()
+
+# Step
+
+class Step extends Layer
+	constructor: (options = {}) ->
+		
+		_.defaults options,
+			name: 'Step'
+			icons: []
+			text: 'Example Text'
+			height: 44
+			backgroundColor: null
+			opacity: 0
+		
+		super options
+		
+		last = 0
+		
+		for icon, i in options.icons
+			_.assign icon, 
+				parent: @
+				x: last
+				y: 0
+			
+			if i is 0 and options.icons.length > 1
+				textLayer = new TextLayer
+					name: 'or'
+					parent: @
+					x: icon.maxX + 16
+					y: Align.center()
+					text: 'or'
+					fontSize: 18
+					fontWeight: 600
+					color: '#FFF'
+					
+				last = textLayer.maxX + 16
+			
+			else
+				last = icon.maxX + 16
+				
+		textLayer = new TextLayer
+			parent: @
+			name: 'body'
+			x: last
+			y: Align.center()
+			width: (Screen.width - last) - 48
+			text: options.text
+			fontSize: 22
+			fontWeight: 600
+			color: '#FFF'
+			
+	show: =>
+		y = @y
+		
+		_.assign @,
+			opacity: 0
+			y: y - 16
+			
+		@animate
+			opacity: 1
+			y: y
+			options:
+				time: .35
+
+# --
 
 # layers
 
@@ -134,41 +199,47 @@ subtitle = new TextLayer
 	fontFamily: 'Helvetica'
 	text: 'A developer handoff tool for Framer'
 
-b1 = new BulletItem
-	x: 16
+
+# Step 1
+
+step1 = new Step
+	x: 32
 	y: subtitle.maxY + 32
-	text: 'Press ` or < to enable or disable'
-	opacity: 0
+	icons: [open_key, open_key_alt]
+	text: 'to enable or disable'
 
-b2 = new BulletItem
-	x: 16
-	y: b1.maxY + 32
-	text: 'Tap a layer to select or deselect it'
-	opacity: 0
+# Step 2
 
-b3 = new BulletItem
-	x: 16
-	y: b2.maxY + 32
-	text: '... or press / or > while hovering'
-	opacity: 0
+step2 = new Step
+	x: 32
+	y: step1.maxY + 32
+	icons: [select_key_alt, select_key]
+	text: 'to select a hovered layer'
 	
-b4 = new BulletItem
-	x: 16
-	y: b3.maxY + 32
-	text: 'Select an animating layer to see its animations'
-	opacity: 0
+# Step 3
 
-b5 = new BulletItem
-	x: 16
-	y: b4.maxY + 32
-	text: 'Tap a value on the panel to copy'
-	opacity: 0
+step3 = new Step
+	x: 32
+	y: step2.maxY + 32
+	icons: [tap_key]
+	text: 'to send a tap'
 
-b6 = new BulletItem
-	x: 16
-	y: b5.maxY + 32
-	text: 'Works in Framer Cloud, too!'
-	opacity: 0
+# Step 4
+
+step4 = new Step
+	x: 32
+	y: step3.maxY + 32
+	icons: [pause_key]
+	text: 'to pause or unpause'
+
+# Step 5
+
+step5 = new Step
+	x: 32
+	y: step4.maxY + 32
+	text: 'Works in Framer Cloud, too.'
+
+# CTA
 
 getStarted = new CTA
 	name: 'Get Started CTA'
@@ -219,6 +290,7 @@ loader.draggable.enabled = true
 loader.draggable.constraints = 
 	width: Screen.width
 	height: Screen.height
+
 
 # Functions
 
@@ -279,9 +351,9 @@ showSteps1 = ->
 	slides.animate
 		blur: 6
 		scale: 1.03
-		brightness: 50
+		brightness: 35
 		options:
-			time: .7
+			time: .35
 	
 	getStarted.textLayer.animate
 		opacity: 0
@@ -296,16 +368,11 @@ showSteps1 = ->
 				time: .25
 
 	getStarted.animate
-		y: b1.maxY + 32
+		y: step1.maxY + 32
 		options:
 			time: .35
 	
-	b1.animate
-		opacity: 1
-		x: 32
-		options:
-			time: .5
-			delay: .5
+	step1.show()
 	
 	getStarted.action = showSteps2
 
@@ -314,16 +381,11 @@ showSteps1 = ->
 showSteps2 = ->
 	
 	getStarted.animate
-		y: b2.maxY + 32
+		y: step2.maxY + 32
 		options:
 			time: .35
 	
-	b2.animate
-		opacity: 1
-		x: 32
-		options:
-			time: .5
-			delay: .5
+	step2.show()
 	
 	getStarted.action = showSteps3
 
@@ -332,88 +394,55 @@ showSteps2 = ->
 showSteps3 = ->
 	
 	getStarted.animate
-		y: b3.maxY + 32
+		y: step3.maxY + 32
 		options:
 			time: .35
-				
-	b3.animate
-		opacity: 1
-		x: 32
-		options:
-			time: .5
-			delay: .5
+	
+	step3.show()
+	
+	getStarted.action = showSteps3
 	
 	getStarted.action = showSteps4
 
 # Show Step 4
 
 showSteps4 = ->
-	
+
 	getStarted.animate
-		y: b4.maxY + 32
+		y: step4.maxY + 32
 		options:
 			time: .35
-				
-	b4.animate
-		opacity: 1
-		x: 32
-		options:
-			time: .5
-			delay: .5
-			
-	loader.animate
-		opacity: 1
-		scale: 1
-		options:
-			delay: 1.25
-			curve: Spring
-			time: .25
 	
+	step4.show()
+	
+	loader.animate
+		scale: 1
+		opacity: 1
+		options:
+			time: .6
+
 	getStarted.action = showSteps5
 
 # Show Step 5
 
 showSteps5 = ->
-	
+
+	getStarted.once Events.AnimationEnd, ->
+		@visible = false
+
 	getStarted.animate
-		y: b5.maxY + 32
+		y: step5.maxY + 32
+		opacity: 0
 		options:
 			time: .35
-				
-	b5.animate
-		opacity: 1
-		x: 32
-		options:
-			time: .5
-			delay: .5
+	
+	step5.show()
 			
 	loader.animate
 		scale: .5
 		options:
 			time: .6
-	
-	getStarted.action = showSteps6
-	
 
-# Show Step 6
-
-showSteps6 = ->
-	
-	getStarted.animate
-		y: b6.maxY + 32
-		opacity: 0
-		options:
-			time: .35
-				
-	b6.animate
-		opacity: 1
-		x: 32
-		options:
-			time: .5
-			delay: .5
-	
-	getStarted.action = -> null
-	
 
 # Kickoff
 

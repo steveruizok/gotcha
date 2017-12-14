@@ -471,6 +471,8 @@ class pDiv
 		_.defaults options,
 			parent: undefined
 
+		@properties = []
+
 		@element = document.createElement('div')
 		@element.classList.add("pDiv")
 		parent = options.parent?.element ? panel
@@ -502,6 +504,9 @@ class pRow extends pDiv
 			text: 'Label'
 			bold: false
 
+		_.assign @,
+			children: []
+
 		super options
 
 		@element.classList.remove("pDiv")
@@ -511,6 +516,11 @@ class pRow extends pDiv
 			parent: @
 			text: options.text
 			bold: options.bold
+
+		Object.defineProperty @, 'color',
+			get: -> return @label.style.color
+			set: (value) ->
+				@label.element.style.color = value
 
 # ---------------------
 # Divider
@@ -548,6 +558,11 @@ class pSpan
 		parent = options.parent?.element ? panel
 		parent.appendChild(@element)
 
+		Object.defineProperty @, 
+			'text',
+			get: -> return @element.textContent
+			set: (value) -> @element.textContent = value
+
 
 # ---------------------
 # Range
@@ -579,6 +594,8 @@ class pRange
 
 		parent = options.parent?.element ? panel
 		parent.appendChild(@element)
+
+		propLayers.push(@)
 
 		Object.defineProperty @, 
 			'value',
@@ -632,25 +649,37 @@ class pInput
 		parent = options.parent?.element ? panel
 		parent.appendChild(@element)
 
+		options.section?.properties.push(@)
+
 		@unit = new pLabel
 			parent: options.parent
 			className: options.className
 			text: options.unit
 			for: @element
 
+		propLayers.push(@)
+
+		Object.defineProperty @, 
+			'default',
+			get: -> return @_default
+			set: (value) ->
+				@_default = value
+
+		@default = options.default ? ''
+
 		Object.defineProperty @, 
 			'value',
 			get: -> return @_value
 			set: (value) ->
 				@_value = value
-				if not value? or value is ""
+				if not value? or value is "" or value is "undefined"
 					value = String(@default)
 
-				@element.value = value
+				@element.value = value ? ""
 
-				Utils.delay 0, =>
-					if value? and not @isDefault and value isnt ""
-						@section?.visible = true
+				if value? and not @isDefault and value isnt ""
+					# @section?.color = '#FFF'
+					@section?.visible = true
 
 		Object.defineProperty @, 
 			'isDefault',
@@ -698,10 +727,14 @@ class pImage
 		parent = options.parent?.element ? panel
 		parent.appendChild(@element)
 
+		options.section?.properties.push(@)
+
+		propLayers.push(@)
+
 		Object.defineProperty @, 
 			'value',
 			get: -> return @_value
-			set: (value) ->
+			set: (value = '') ->
 				@_value = value
 				@element.src = value
 				@section?.visible = value isnt ''
@@ -738,6 +771,10 @@ class pColor
 		parent = options.parent?.element ? panel
 		parent.appendChild(@element)
 
+		options.section?.properties.push(@)
+
+		propLayers.push(@)
+
 		Object.defineProperty @, 
 			'value',
 			get: -> return @_value
@@ -749,8 +786,8 @@ class pColor
 				if value? and value isnt ''
 					@section?.visible = true
 
-				@_value = value
-				@element.style['background-color'] = value
+				@_value = value ? ''
+				@element.style['background-color'] = value ? 'none'
 
 		@element.addEventListener 'click', =>
 			if not secretBox
@@ -969,17 +1006,30 @@ class SpecPanel
 		# ------------------
 		# animation speed
 
-		row = new pRow
-			text: 'Speed'
+		@speedRow = new pRow
+			text: 'Speed 100%'
+
+		minp = parseInt(0, 10)
+		maxp = parseInt(100, 10)
+		
+		minv = Math.log(0.00001)
+		maxv = Math.log(0.01666666667)
+
+		vScale = (maxv-minv) / (maxp-minp)
 
 		@speedBox = new pRange
-			parent: row
+			parent: @speedRow
 			className: 'full'
 			unit: ''
-			action: (value) ->
-				base = 0.016666666666666666
-				Framer.Loop.delta = base * _.clamp(value/100, .0000000001, 1)
+			action: (value) =>
 
+				delta = Math.exp(minv + vScale*(value-minp))
+				rate = (delta/(1/60))*100
+				spaces = if rate < 1 then 2 else if rate < 10 then 1 else 0
+
+				@speedRow.label.text = 'Speed ' + rate.toFixed(spaces) + '%'
+
+				Framer.Loop.delta = delta
 
 		# ------------------------------------
 		# layer details
@@ -1318,6 +1368,7 @@ class SpecPanel
 			section: @transformsDiv
 			className: 'left'
 			unit: ''
+			default: '1'
 
 		row = new pRow
 			parent: @transformsAcco.body
@@ -1328,12 +1379,14 @@ class SpecPanel
 			section: @transformsDiv
 			className: 'left'
 			unit: 'x'
+			default: '1'
 
 		@scaleYBox = new pInput
 			parent: row
 			section: @transformsDiv
 			className: 'right'
 			unit: 'y'
+			default: '1'
 
 		# ------------------
 		# rotation
@@ -1347,6 +1400,7 @@ class SpecPanel
 			section: @transformsDiv
 			className: 'left'
 			unit: ''
+			default: '0'
 
 		row = new pRow
 			parent: @transformsAcco.body
@@ -1357,12 +1411,14 @@ class SpecPanel
 			section: @transformsDiv
 			className: 'left'
 			unit: 'x'
+			default: '0'
 
 		@rotationYBox = new pInput
 			parent: row
 			section: @transformsDiv
 			className: 'right'
 			unit: 'y'
+			default: '0'
 
 
 		# ------------------
@@ -1377,12 +1433,14 @@ class SpecPanel
 			section: @transformsDiv
 			className: 'left'
 			unit: 'x'
+			default: '0.50'
 
 		@originYBox = new pInput
 			parent: row
 			section: @transformsDiv
 			className: 'right'
 			unit: 'y'
+			default: '0.50'
 
 		# ------------------
 		# skew
@@ -1396,6 +1454,7 @@ class SpecPanel
 			section: @transformsDiv
 			className: 'left'
 			unit: ''
+			default: '0'
 
 		row = new pRow
 			parent: @transformsAcco.body
@@ -1406,12 +1465,14 @@ class SpecPanel
 			section: @transformsDiv
 			className: 'left'
 			unit: 'x'
+			default: '0'
 
 		@skewYBox = new pInput
 			parent: row
 			section: @transformsDiv
 			className: 'right'
 			unit: 'y'
+			default: '0'
 
 		# ------------------
 		# perspective
@@ -1425,12 +1486,11 @@ class SpecPanel
 			section: @transformsDiv
 			className: 'left'
 			unit: ''
-			default: ''
+			default: '0'
 
 
 		# ------------------------------------
 		# filters properties
-
 
 		@filtersDiv = new pDiv
 
@@ -1450,6 +1510,7 @@ class SpecPanel
 			section: @filtersDiv
 			className: 'left'
 			unit: ''
+			default: '0'
 
 		# ------------------
 		# brightness
@@ -1463,6 +1524,7 @@ class SpecPanel
 			section: @filtersDiv
 			className: 'left'
 			unit: ''
+			default: '100'
 
 		# ------------------
 		# contrast
@@ -1476,6 +1538,7 @@ class SpecPanel
 			section: @filtersDiv
 			className: 'left'
 			unit: ''
+			default: '100'
 
 		# ------------------
 		# grayscale
@@ -1489,6 +1552,7 @@ class SpecPanel
 			section: @filtersDiv
 			className: 'left'
 			unit: ''
+			default: '0'
 
 		# ------------------
 		# huerotate
@@ -1502,6 +1566,7 @@ class SpecPanel
 			section: @filtersDiv
 			className: 'left'
 			unit: ''
+			default: '0'
 
 		# ------------------
 		# invert
@@ -1515,6 +1580,7 @@ class SpecPanel
 			section: @filtersDiv
 			className: 'left'
 			unit: ''
+			default: '0'
 
 		# ------------------
 		# saturate
@@ -1528,6 +1594,7 @@ class SpecPanel
 			section: @filtersDiv
 			className: 'left'
 			unit: ''
+			default: '100'
 
 		# ------------------
 		# sepia
@@ -1541,6 +1608,7 @@ class SpecPanel
 			section: @filtersDiv
 			className: 'left'
 			unit: ''
+			default: '0'
 
 		# -------------------------- end filters
 
@@ -1579,6 +1647,7 @@ class SpecPanel
 			section: @effectsDiv
 			className: 'left'
 			unit: ''
+			default: '0'
 
 
 		row = new pRow
@@ -1590,6 +1659,7 @@ class SpecPanel
 			section: @effectsDiv
 			className: 'left'
 			unit: ''
+			default: '100'
 
 
 		row = new pRow
@@ -1601,6 +1671,7 @@ class SpecPanel
 			section: @effectsDiv
 			className: 'left'
 			unit: ''
+			default: '100'
 
 
 		row = new pRow
@@ -1612,6 +1683,7 @@ class SpecPanel
 			section: @effectsDiv
 			className: 'left'
 			unit: ''
+			default: '0'
 
 
 		row = new pRow
@@ -1623,6 +1695,7 @@ class SpecPanel
 			section: @effectsDiv
 			className: 'left'
 			unit: ''
+			default: '100'
 
 
 		row = new pRow
@@ -1634,6 +1707,7 @@ class SpecPanel
 			section: @effectsDiv
 			className: 'left'
 			unit: ''
+			default: '0'
 
 
 		row = new pRow
@@ -1645,6 +1719,7 @@ class SpecPanel
 			section: @effectsDiv
 			className: 'left'
 			unit: ''
+			default: '0'
 
 
 		row = new pRow
@@ -1656,6 +1731,7 @@ class SpecPanel
 			section: @effectsDiv
 			className: 'left'
 			unit: ''
+			default: '0'
 
 
 
@@ -1744,7 +1820,6 @@ class SpecPanel
 			@socialMediaRow.element.classList.add('socialLinks')
 
 		@hideDivs()
-		@clearProps()
 
 	clearChildrenThenShowAnimations: (animations) =>
 		child = @animsAcco.body.element.childNodes[0]
@@ -1768,24 +1843,21 @@ class SpecPanel
 		@clearChildrenThenShowEventListeners(eventListeners)
 
 	showEventListeners: (eventListeners = []) =>
-		
-		@eventListenersDiv.visible = eventListeners.length > 0
+
+		defaults = [
+			"function (){return fn.apply(me,arguments)}", 
+			"function (){return fn.apply(me, arguments)}", 
+			"function (event){return event.preventDefault()}",
+			"function (){ return fn.apply(me, arguments); }",
+			'function debounced(){var time=now(),isInvoking=shouldInvoke(time);if(lastArgs=arguments,lastThis=this,lastCallTime=time,isInvoking){if(timerId===undefined)return leadingEdge(lastCallTime);if(maxing)return timerId=setTimeout(timerExpired,wait),invokeFunc(lastCallTime)}return timerId===undefined&&(timerId=setTimeout(timerExpired,wait)),result}',
+			'function (value){if(null!==value)return"fontSize"!==property&&"font"!==property&&_this._styledText.resetStyle(property),_this.renderText()}',
+		]
+
+		realListeners = 0
 
 		for listener, i in eventListeners
 
-			if listener.events.length is 1 and _.includes([
-				"function (){return fn.apply(me,arguments)}", 
-				"function (){return fn.apply(me, arguments)}", 
-				"function (event){return event.preventDefault()}",
-				"function (){ return fn.apply(me, arguments); }",
-				'function debounced(){var time=now(),isInvoking=shouldInvoke(time);if(lastArgs=arguments,lastThis=this,lastCallTime=time,isInvoking){if(timerId===undefined)return leadingEdge(lastCallTime);if(maxing)return timerId=setTimeout(timerExpired,wait),invokeFunc(lastCallTime)}return timerId===undefined&&(timerId=setTimeout(timerExpired,wait)),result}',
-				'function (value){if(null!==value)return"fontSize"!==property&&"font"!==property&&_this._styledText.resetStyle(property),_this.renderText()}',
-				], listener.events[0].function)
-
-				@eventListenersDiv.visible = false
-				continue
-
-			@eventListenersDiv.visible = true
+			continue if _.every(listener.events, (e) -> _.includes(defaults, e.function))
 
 			# --------------------------------
 			# listener
@@ -1799,6 +1871,10 @@ class SpecPanel
 			# events
 
 			for event, e in listener.events
+
+				continue if _.includes(defaults, event.function)
+
+				realListeners++
 
 				# name
 
@@ -1847,9 +1923,18 @@ class SpecPanel
 				new pDivider
 					parent: @eventListenersAcco.body
 
+
+		# set color
+
+		if realListeners is 0
+			@eventListenersAcco.color = '#888888'
+			return
+
+		@eventListenersAcco.color = '#FFFFFF'
+
 	showAnimations: (animations) =>
 		
-		@animsDiv.visible = animations.length > 0
+		@animsAcco.color = if animations.length > 0 then '#FFF' else '#888888'
 	
 		for anim, i in animations
 
@@ -2044,6 +2129,8 @@ class SpecPanel
 		
 	showProperties: (layer, customProps) =>
 
+		@scrollTop = @element.scrollTop
+
 		props = layer.props
 		_.assign props, customProps
 
@@ -2066,7 +2153,21 @@ class SpecPanel
 			
 			@showProperty(key, value, propLayer, def)
 
+		@showOverrideInAcco(@effectsDiv, @effectsAcco)
+		@showOverrideInAcco(@filtersDiv, @filtersAcco)
+		@showOverrideInAcco(@transformsDiv, @transformsAcco)
+				
+		@element.scrollTop = @scrollTop
+
+	showOverrideInAcco: (div, acco) ->
+		acco.color = '#888888'
+		for propLayer in div.properties
+			if propLayer.value? and propLayer.value isnt propLayer.default
+				acco.color = '#FFF'
+
 	showProperty: (key, value, propLayer, def) =>
+
+		return if value is propLayer.value
 
 		propLayer.isDefault = false
 
@@ -2103,23 +2204,20 @@ class SpecPanel
 			@gradientPropertiesDiv,
 			@textPropertiesDiv,
 			@shadowPropertiesDiv,
-			@imagePropertiesDiv,
-			@filtersDiv,
-			@transformsDiv,
 			@borderPropertiesDiv,
-			@effectsDiv,
+			@imagePropertiesDiv,
 			@screenshotDiv
 		]
-		
 			div.visible = false
 
-	clearProps: =>
-		for prop in @propLayers
-			prop.value = undefined
 
 
 
 
+
+
+
+propLayers = []
 
 ### -------------------------------------------
 
@@ -2173,7 +2271,6 @@ class Gotcha
 		@context.classList.add('hoverContext')
 		@context.childNodes[2].classList.add('IgnorePointerEvents')
 
-
 		Object.defineProperty @,
 			"onlyVisible",
 			get: -> return @_onlyVisible
@@ -2192,15 +2289,27 @@ class Gotcha
 			@opened = !@opened
 			return
 
+		return if not @enabled
+
 		if event.key is "/" or event.key is ">"
-			return if not @enabled
-
-			if @hoveredLayer is @selectedLayer
-				@unsetSelectedLayer()
-			else
-				@setSelectedLayer()
-
+			@setSelectedLayer()
 			return
+
+		if event.key is "."
+			@hoveredLayer?.emit Events.Tap
+			return
+
+		if event.key is "\\"
+			@_lastSpeed ?= 1
+			thisSpeed = @specPanel.speedBox.element.value
+
+			if thisSpeed is "0"
+				@specPanel.speedBox.element.value = @_lastSpeed
+				@specPanel.speedBox.action(@_lastSpeed)
+			else 
+				@specPanel.speedBox.element.value = 0
+				Framer.Loop.delta = .000000000000000000001
+				@_lastSpeed = thisSpeed
 
 	# open the panel, start listening for events
 	enable: =>
@@ -2209,11 +2318,16 @@ class Gotcha
 
 		@transition(true)
 
+		if @timer? then clearInterval @timer
+		@timer = Utils.interval 1/30, @focus
+
 	disable: =>
 		@unfocus()
 		@enabled = false
 
 		@transition(false)
+
+		if @timer? then clearInterval @timer
 
 	transition: (open = true, seconds = .5) =>
 		hands = Framer.Device.hands
@@ -2373,13 +2487,17 @@ class Gotcha
 		label.show()
 
 	# make the bounding rectangle for selected / hovered elements
-	makeRectOverlays: (s, h) =>
-		return if not s or not h
+	makeRectOverlays: (selectedLayer, s, hoveredLayer, h) =>
+		if not s or not h
+			return
 
-		if @hoveredLayer is Framer.Device.screen
+		if hoveredLayer is selectedLayer
+			hoveredLayer = Framer.Device.screen
+
+		hoverFill = new Color(@color).alpha(.2)
+
+		if hoveredLayer is Framer.Device.screen
 			hoverFill = new Color(@color).alpha(0)
-		else
-			hoverFill = new Color(@color).alpha(.2)
 
 		hoveredRect = new SVGShape
 			type: 'rect'
@@ -2392,10 +2510,10 @@ class Gotcha
 			fill: hoverFill
 			'stroke-width': '1px'
 
-		if @selectedLayer is Framer.Device.screen
+		selectFill = new Color(@selectedColor).alpha(.2)
+		
+		if selectedLayer is Framer.Device.screen
 			selectFill = new Color(@selectedColor).alpha(0)
-		else
-			selectFill = new Color(@selectedColor).alpha(.2)
 
 		selectedRect = new SVGShape
 			type: 'rect'
@@ -2443,13 +2561,10 @@ class Gotcha
 			offset
 			)
 
-	showDistances: (selected, hovered) =>
+	showDistances: (selectedLayer, hoveredLayer) =>
 
-		if @hoveredLayer is @selectedLayer
-			@hoveredLayer = Framer.Device.screen
-
-		s = @getDimensions(@selectedLayer._element)
-		h = @getDimensions(@hoveredLayer._element)
+		s = @getDimensions(selectedLayer._element)
+		h = @getDimensions(hoveredLayer._element)
 		f = @getDimensions(Framer.Device.screen._element)
 
 		return if not s or not h
@@ -2458,7 +2573,7 @@ class Gotcha
 
 		@makeDashedLines(s, f, @selectedColor, 5)
 
-		@makeRectOverlays(s, h)
+		@makeRectOverlays(selectedLayer, s, hoveredLayer, h)
 
 
 		# When selected element contains hovered element
@@ -2615,17 +2730,13 @@ class Gotcha
 	# set the panel with current properties
 	setPanelProperties: () =>
 
-		# decide which layer to use for panel props
-		if @selectedLayer? and @selectedLayer isnt Framer.Device.screen
-			layer = @selectedLayer
-		else if @hoveredLayer?
-			layer = @hoveredLayer
-		else
-			@specPanel.clearProps()
+		layer = @selectedLayer ? @hoveredLayer
+
+		if layer is @lastLayer and layer.isAnimating is false
 			return
 
-		return if layer is @lastLayer
 		@lastLayer = layer
+		@lastProps = layer.props
 		
 		# properties to assigned to layer.props
 		customProps =
@@ -2672,6 +2783,7 @@ class Gotcha
 		@hoveredLayer = layer
 
 		@tryFocus(event)
+
 		return false
 
 	unsetHoveredLayer: (event) =>
@@ -2682,11 +2794,16 @@ class Gotcha
 	setSelectedLayer: =>
 		return if not @hoveredLayer
 
+		if @selectedLayer is @hoveredLayer
+			@unsetSelectedLayer()
+			return
+
 		@selectedLayer = @hoveredLayer
 		@focus()
 
 	unsetSelectedLayer: =>
 		@selectedLayer = undefined
+		@focus()
 
 
 	# Find an element that belongs to a Framer Layer
@@ -2793,11 +2910,20 @@ class Gotcha
 
 		@unfocus()
 
-		@selectedLayer ?= Framer.Device.screen
+		# @selectedLayer ?= Framer.Device.screen
 		@hoveredLayer ?= Framer.Device.screen
 
-		@setPanelProperties()
-		@showDistances()
+		hoveredLayer = @hoveredLayer ? Framer.Device.screen
+		selectedLayer = @selectedLayer ? Framer.Device.screen
+
+		if selectedLayer is hoveredLayer
+			hoveredLayer = Framer.Device.screen
+
+		if hoveredLayer is selectedLayer
+			return
+
+		@showDistances(selectedLayer, hoveredLayer)
+		@setPanelProperties(selectedLayer, hoveredLayer)
 
 	unfocus: (event) =>
 		svgContext.removeAll()

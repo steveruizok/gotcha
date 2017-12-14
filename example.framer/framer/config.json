@@ -2,11 +2,11 @@
   "orientation" : 0,
   "updateDelay" : 1,
   "designModeSelected" : 0,
-  "cachedDeviceHeight" : 640,
+  "cachedDeviceHeight" : 667,
   "contentScale" : 2,
   "fullScreen" : false,
-  "cachedDeviceWidth" : 360,
-  "deviceType" : "google-nexus-5x",
+  "cachedDeviceWidth" : 375,
+  "deviceType" : "apple-iphone-8-space-gray",
   "sharedPrototype" : true,
   "propertyPanelToggleStates" : {
     "Filters" : true
@@ -16,17 +16,17 @@
   "selectedHand" : "",
   "showBezel" : true,
   "foldedCodeRanges" : [
-    "{156, 647}",
-    "{804, 947}",
-    "{1752, 1310}",
-    "{3063, 623}",
-    "{3700, 616}",
-    "{4317, 498}",
-    "{4816, 200}",
-    "{5017, 203}",
-    "{5221, 303}",
-    "{5525, 260}",
-    "{5786, 215}"
+    "{155, 647}",
+    "{803, 967}",
+    "{1771, 954}",
+    "{2732, 1241}",
+    "{3974, 623}",
+    "{4612, 616}",
+    "{5229, 447}",
+    "{5677, 148}",
+    "{5826, 182}",
+    "{6009, 211}",
+    "{6221, 242}"
   ],
   "deviceScale" : "fit"
 }
