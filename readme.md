@@ -27,19 +27,27 @@ To install manually, download the **gotcha.coffee** file and drag it into your p
 
 ## Usage
 
-- Tap anywhere in the Preview window.
-- Press ` (or < for some EU keyboards) to enable or disable Gotcha.
-- Hover elements to see information about them.
-- Select an element by tapping on it, or by pressing / while hovered over it.
-- In the spec panel, click any field to copy the field's value.
-- Slow down the global animation speed using the Speed slider.
-- Change devices using the Devices dropdown.
+In the Preview window...
+- Hover a Layer to get information about it
+- Tap a Layer to select it
+
+On your keyboard...
+- Press *`* or *<* to enable or disable Gotcha
+- Press */* or *>* to select or deselect a Layer
+- Press *.* to simulate a tap on a hovered Layer
+- Press \ to pause all animations
+
+In the spec panel...
+- click any field to copy the field's value
+- Slow down the global animation speed using the Speed slider
+- Change devices using the Devices dropdown
 
 
 ## Tips
 
 - Gotcha works in the Device Preview window. If your preview window is zoomed in, or if you can't see a device, you'll need to select the Toggle Device from the window's hamburger menu, or press Command + Shift + D.
-- Be sure that your Device Preview window is active before hitting the ` key, lest you find your code full of random tick marks.
+- Be sure that your Device Preview window is active before pressing any keys, lest you find your code full of random tick marks.
+
 
 ## Planned Features
 
