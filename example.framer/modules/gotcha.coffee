@@ -2746,7 +2746,7 @@ class Gotcha
 			componentNames: @getComponentFromLayer(layer.parent)
 			parentName: layer.parent?.name
 			rotation: layer.rotationZ
-			textAlign: layer.props.styledTextOptions?.alignment
+			# textAlign: layer.props.styledTextOptions?.alignment
 			blending: layer.blending
 			# screenshot: @getScreenshot(layer._element)
 		
