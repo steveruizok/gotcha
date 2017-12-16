@@ -10,7 +10,6 @@
 #
 # A Framer module for handoff. It works kind of like that other tool.
 
-
 deviceType = window.localStorage.deviceType
 
 if deviceType? 
@@ -957,7 +956,7 @@ class SpecPanel
 
 		# Set Device Options
 
-		deviceOptions = []
+		deviceOptions = ['fullscreen']
 		currentSelected = undefined
 
 		for key, value of Framer.DeviceComponent.Devices
