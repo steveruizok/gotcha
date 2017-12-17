@@ -1823,7 +1823,7 @@ class SpecPanel
 	clearChildrenThenShowAnimations: (animations) =>
 		child = @animsAcco.body.element.childNodes[0]
 
-		if not child
+		if not child?
 			@showAnimations(animations)
 			return
 
@@ -1834,7 +1834,7 @@ class SpecPanel
 
 		child = @eventListenersAcco.body.element.childNodes[0]
 
-		if not child
+		if not child?
 			@showEventListeners(eventListeners)
 			return
 
@@ -2318,7 +2318,7 @@ class Gotcha
 		@transition(true)
 
 		if @timer? then clearInterval @timer
-		@timer = Utils.interval 1/30, @focus
+		@timer = Utils.interval 1/15, @focus
 
 	disable: =>
 		@unfocus()
@@ -2458,25 +2458,23 @@ class Gotcha
 			type: 'text'
 			parent: svgContext
 			x: x
-			y: y
+			y: y + 4
 			'font-family': @fontFamily
 			'font-size': @fontSize
 			'font-weight': @fontWeight
+			'text-anchor': "middle"
 			fill: @secondaryColor
 			text: Math.floor(text / @ratio)
 
-		l = @getDimensions(label.element)
-
-		label.x = x - l.width / 2
-		label.y = y + l.height / 4 - 1
+		w = label.element.textLength.baseVal.value
 
 		box = new SVGShape
 			type: 'rect'
 			parent: svgContext
-			x: label.x - @padding.left
-			y: label.y - l.height + 1
-			width: l.width + @padding.left + @padding.right
-			height: l.height + @padding.top + @padding.bottom + 1
+			x: x - (w / 2) - @padding.left
+			y: y - 7
+			width: w + @padding.left + @padding.right
+			height: 15
 			rx: @borderRadius
 			ry: @borderRadius
 			fill: new Color(color).darken(40)
@@ -2562,20 +2560,19 @@ class Gotcha
 
 	showDistances: (selectedLayer, hoveredLayer) =>
 
+		return if not selectedLayer or not hoveredLayer
+
 		s = @getDimensions(selectedLayer._element)
 		h = @getDimensions(hoveredLayer._element)
 		f = @getDimensions(Framer.Device.screen._element)
-
-		return if not s or not h
-
-		@ratio = Framer.Device.screen._element.getBoundingClientRect().width / Screen.width
 
 		@makeDashedLines(s, f, @selectedColor, 5)
 
 		@makeRectOverlays(selectedLayer, s, hoveredLayer, h)
 
-
 		# When selected element contains hovered element
+
+		@ratio = Framer.Device.screen._element.getBoundingClientRect().width / Screen.width
 
 		if s.x < h.x and s.maxX > h.maxX and s.y < h.y and s.maxY > h.maxY
 			
