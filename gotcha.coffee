@@ -238,10 +238,6 @@ Utils.insertCSS """
 		right: 36px;
 	}
 
-	.framerLayer { 
-		pointer-events: all !important; 
-		} 
-	
 	.IgnorePointerEvents {
 		pointer-events: none !important; 
 	}
