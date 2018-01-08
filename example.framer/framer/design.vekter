@@ -4,6 +4,29 @@
     "children" : [
       {
         "__class" : "FrameNode",
+        "aspectRatioLocked" : false,
+        "blendingEnabled" : 0,
+        "blendingMode" : "normal",
+        "blur" : 12,
+        "blurEnabled" : 0,
+        "blurType" : "layer",
+        "borderBottom" : 1,
+        "borderColor" : "#222",
+        "borderEnabled" : 0,
+        "borderLeft" : 1,
+        "borderPerSide" : false,
+        "borderRight" : 1,
+        "borderStyle" : "solid",
+        "borderTop" : 1,
+        "borderWidth" : 1,
+        "bottom" : null,
+        "boxShadows" : [
+
+        ],
+        "brightness" : 100,
+        "brightnessEnabled" : 0,
+        "centerAnchorX" : 0,
+        "centerAnchorY" : 0,
         "children" : [
           {
             "__class" : "ImageNode",
@@ -80,7 +103,7 @@
             "widthFactor" : null
           },
           {
-            "__class" : "RectangleNode",
+            "__class" : "FrameNode",
             "aspectRatioLocked" : false,
             "blendingEnabled" : 0,
             "blendingMode" : "normal",
@@ -111,6 +134,8 @@
             "constraintsLocked" : false,
             "contrast" : 100,
             "contrastEnabled" : 0,
+            "deviceType" : null,
+            "exportIncludesBackground" : true,
             "exportOptions" : [
 
             ],
@@ -141,6 +166,7 @@
             "radius" : 0,
             "radiusBottomLeft" : 0,
             "radiusBottomRight" : 0,
+            "radiusIsRelative" : false,
             "radiusPerCorner" : false,
             "radiusTopLeft" : 0,
             "radiusTopRight" : 0,
@@ -157,12 +183,17 @@
             "widthFactor" : null
           }
         ],
+        "clip" : true,
+        "constraintsLocked" : false,
+        "contrast" : 100,
+        "contrastEnabled" : 0,
         "deviceType" : "apple-iphone-x-space-gray",
         "exportIncludesBackground" : true,
         "exportOptions" : [
 
         ],
         "fillColor" : "#ffffff",
+        "fillEnabled" : true,
         "fillGradient" : {
           "__class" : "LinearGradient",
           "alpha" : 1,
@@ -171,14 +202,38 @@
           "start" : "black"
         },
         "fillType" : "color",
+        "grayscale" : 0,
+        "grayScaleEnabled" : 0,
         "height" : 812,
+        "heightFactor" : null,
+        "hueRotate" : 0,
+        "hueRotateEnabled" : 0,
         "id" : "VCU'zKmu",
+        "invert" : 0,
+        "invertEnabled" : 0,
+        "left" : -85,
+        "locked" : false,
         "name" : null,
+        "opacity" : 1,
         "parentid" : "p3N%MBBR",
+        "radius" : 0,
+        "radiusBottomLeft" : 0,
+        "radiusBottomRight" : 0,
+        "radiusIsRelative" : false,
+        "radiusPerCorner" : false,
+        "radiusTopLeft" : 0,
+        "radiusTopRight" : 0,
+        "right" : null,
+        "rotation" : 0,
+        "saturate" : 100,
+        "saturateEnabled" : 0,
+        "sepia" : 0,
+        "sepiaEnabled" : 0,
         "targetName" : null,
+        "top" : 1024,
+        "visible" : true,
         "width" : 375,
-        "x" : -85,
-        "y" : 1024
+        "widthFactor" : null
       },
       {
         "__class" : "TextNode",
@@ -255,7 +310,7 @@
         "widthFactor" : null
       },
       {
-        "__class" : "RectangleNode",
+        "__class" : "FrameNode",
         "aspectRatioLocked" : true,
         "blendingEnabled" : 0,
         "blendingMode" : "normal",
@@ -395,15 +450,15 @@
             "top" : null,
             "visible" : true,
             "width" : 44,
-            "widthFactor" : null,
-            "x" : 16,
-            "y" : 43
+            "widthFactor" : null
           }
         ],
         "clip" : false,
         "constraintsLocked" : false,
         "contrast" : 100,
         "contrastEnabled" : 0,
+        "deviceType" : null,
+        "exportIncludesBackground" : true,
         "exportOptions" : [
 
         ],
@@ -434,6 +489,7 @@
         "radius" : 4,
         "radiusBottomLeft" : 4,
         "radiusBottomRight" : 4,
+        "radiusIsRelative" : false,
         "radiusPerCorner" : false,
         "radiusTopLeft" : 4,
         "radiusTopRight" : 4,
@@ -450,7 +506,7 @@
         "widthFactor" : null
       },
       {
-        "__class" : "RectangleNode",
+        "__class" : "FrameNode",
         "aspectRatioLocked" : true,
         "blendingEnabled" : 0,
         "blendingMode" : "normal",
@@ -590,15 +646,15 @@
             "top" : null,
             "visible" : true,
             "width" : 44,
-            "widthFactor" : null,
-            "x" : 16,
-            "y" : 43
+            "widthFactor" : null
           }
         ],
         "clip" : false,
         "constraintsLocked" : false,
         "contrast" : 100,
         "contrastEnabled" : 0,
+        "deviceType" : null,
+        "exportIncludesBackground" : true,
         "exportOptions" : [
 
         ],
@@ -629,6 +685,7 @@
         "radius" : 4,
         "radiusBottomLeft" : 4,
         "radiusBottomRight" : 4,
+        "radiusIsRelative" : false,
         "radiusPerCorner" : false,
         "radiusTopLeft" : 4,
         "radiusTopRight" : 4,
@@ -645,7 +702,7 @@
         "widthFactor" : null
       },
       {
-        "__class" : "RectangleNode",
+        "__class" : "FrameNode",
         "aspectRatioLocked" : true,
         "blendingEnabled" : 0,
         "blendingMode" : "normal",
@@ -785,15 +842,15 @@
             "top" : null,
             "visible" : true,
             "width" : 44,
-            "widthFactor" : null,
-            "x" : 16,
-            "y" : 43
+            "widthFactor" : null
           }
         ],
         "clip" : false,
         "constraintsLocked" : false,
         "contrast" : 100,
         "contrastEnabled" : 0,
+        "deviceType" : null,
+        "exportIncludesBackground" : true,
         "exportOptions" : [
 
         ],
@@ -824,6 +881,7 @@
         "radius" : 4,
         "radiusBottomLeft" : 4,
         "radiusBottomRight" : 4,
+        "radiusIsRelative" : false,
         "radiusPerCorner" : false,
         "radiusTopLeft" : 4,
         "radiusTopRight" : 4,
@@ -840,7 +898,7 @@
         "widthFactor" : null
       },
       {
-        "__class" : "RectangleNode",
+        "__class" : "FrameNode",
         "aspectRatioLocked" : true,
         "blendingEnabled" : 0,
         "blendingMode" : "normal",
@@ -980,15 +1038,15 @@
             "top" : null,
             "visible" : true,
             "width" : 44,
-            "widthFactor" : null,
-            "x" : 16,
-            "y" : 43
+            "widthFactor" : null
           }
         ],
         "clip" : false,
         "constraintsLocked" : false,
         "contrast" : 100,
         "contrastEnabled" : 0,
+        "deviceType" : null,
+        "exportIncludesBackground" : true,
         "exportOptions" : [
 
         ],
@@ -1019,6 +1077,7 @@
         "radius" : 4,
         "radiusBottomLeft" : 4,
         "radiusBottomRight" : 4,
+        "radiusIsRelative" : false,
         "radiusPerCorner" : false,
         "radiusTopLeft" : 4,
         "radiusTopRight" : 4,
@@ -1035,7 +1094,7 @@
         "widthFactor" : null
       },
       {
-        "__class" : "RectangleNode",
+        "__class" : "FrameNode",
         "aspectRatioLocked" : true,
         "blendingEnabled" : 0,
         "blendingMode" : "normal",
@@ -1175,15 +1234,15 @@
             "top" : null,
             "visible" : true,
             "width" : 44,
-            "widthFactor" : null,
-            "x" : 16,
-            "y" : 43
+            "widthFactor" : null
           }
         ],
         "clip" : false,
         "constraintsLocked" : false,
         "contrast" : 100,
         "contrastEnabled" : 0,
+        "deviceType" : null,
+        "exportIncludesBackground" : true,
         "exportOptions" : [
 
         ],
@@ -1214,6 +1273,7 @@
         "radius" : 4,
         "radiusBottomLeft" : 4,
         "radiusBottomRight" : 4,
+        "radiusIsRelative" : false,
         "radiusPerCorner" : false,
         "radiusTopLeft" : 4,
         "radiusTopRight" : 4,
@@ -1230,7 +1290,7 @@
         "widthFactor" : null
       },
       {
-        "__class" : "RectangleNode",
+        "__class" : "FrameNode",
         "aspectRatioLocked" : true,
         "blendingEnabled" : 0,
         "blendingMode" : "normal",
@@ -1370,15 +1430,15 @@
             "top" : null,
             "visible" : true,
             "width" : 44,
-            "widthFactor" : null,
-            "x" : 16,
-            "y" : 43
+            "widthFactor" : null
           }
         ],
         "clip" : false,
         "constraintsLocked" : false,
         "contrast" : 100,
         "contrastEnabled" : 0,
+        "deviceType" : null,
+        "exportIncludesBackground" : true,
         "exportOptions" : [
 
         ],
@@ -1409,6 +1469,7 @@
         "radius" : 4,
         "radiusBottomLeft" : 4,
         "radiusBottomRight" : 4,
+        "radiusIsRelative" : false,
         "radiusPerCorner" : false,
         "radiusTopLeft" : 4,
         "radiusTopRight" : 4,
@@ -1428,5 +1489,5 @@
     "id" : "p3N%MBBR",
     "parentid" : null
   },
-  "version" : 13
+  "version" : 19
 }

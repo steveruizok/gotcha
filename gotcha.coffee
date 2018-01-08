@@ -238,6 +238,10 @@ Utils.insertCSS """
 		right: 36px;
 	}
 
+	.framerLayer { 
+		pointer-events: all !important; 
+		} 
+	
 	.IgnorePointerEvents {
 		pointer-events: none !important; 
 	}
@@ -2824,7 +2828,7 @@ class Gotcha
 		if not layer
 			return true
 
-		if layer.opacity is 0 or layer.visible is false
+		if layer.opacity is 0 or layer.visible is false or layer.gotchaIgnore
 			return false
 
 		@getLayerIsVisible(layer.parent)
