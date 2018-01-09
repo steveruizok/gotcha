@@ -2775,7 +2775,7 @@ class Gotcha
 
 		layer = @getLayerFromElement(event?.target)
 		return if not @getLayerIsVisible(layer)
-
+			
 		@hoveredLayer = layer
 
 		@tryFocus(event)
@@ -2817,20 +2817,30 @@ class Gotcha
 		return if not element
 
 		element = @findLayerElement(element)
-		layer = _.find(Framer.CurrentContext._layers, ['_element', element])
+
+		layers = _.filter(Framer.CurrentContext._layers, (l) -> 
+			if l.gotchaIgnore
+				return false
+			
+			return true
+			)
+
+		layer = _.find(layers, (l) -> l._element is element)
 
 		return layer
 
+
 	getLayerIsVisible: (layer) =>
-		if not @_onlyVisible
+		if not layer 
 			return true
 
-		if not layer
-			return true
+		if @onlyVisible
+			if layer.opacity is 0
+				return false
 
-		if layer.opacity is 0 or layer.visible is false or layer.gotchaIgnore
-			return false
-
+			if layer.visible is false
+				return false
+				
 		@getLayerIsVisible(layer.parent)
 
 	getLayerEventListeners: (layer) =>
