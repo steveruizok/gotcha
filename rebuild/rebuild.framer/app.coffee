@@ -6,12 +6,14 @@ app = new App
 # View
 
 view = new View
+	name: "View"
+	key: "0.0.0"
 	contentInset:
 		bottom: 128
 
 view.onLoad ->
 
-	for i in _.range(3)
+	for i in _.range(5)
 		container = new Layer
 			name: "Container"
 			parent: @content
@@ -24,7 +26,7 @@ view.onLoad ->
 			
 		new Layer
 			name: "Photo"
-# 			image: Utils.randomImage()
+			image: Utils.randomImage()
 			parent: container
 			width: @width - 32
 			
