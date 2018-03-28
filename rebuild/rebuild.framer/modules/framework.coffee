@@ -2,8 +2,7 @@ require 'components/moreutils'
 theme = require 'components/Theme'
 colors = require 'components/Colors'
 typography = require 'components/Typography'
-{ loadWebFonts } = require 'components/fontloader'
-{ loadLocalFonts } = require 'components/fontloader'
+Keyboard = require 'components/Keyboard'
 
 colors.updateColors()
 
@@ -14,39 +13,17 @@ Framer.Extras.Hints.disable()
 dumbthing = document.getElementById("FramerContextRoot-TouchEmulator")?.childNodes[0]
 dumbthing?.style.width = "0px"
 
-# require in everything else
-{ Button } = require 'components/Button'
-{ Radiobox } = require 'components/Radiobox'
-{ Checkbox } = require 'components/Checkbox'
-{ DocComponent } = require 'components/DocComponent'
-{ Footer } = require 'components/Footer'
-{ Header } = require 'components/Header'
-{ Segment } = require 'components/Segment'
-{ Toggle } = require 'components/Toggle'
-{ Tooltip } = require 'components/Tooltip'
-{ Icon } = require 'components/Icon'
-{ Link } = require 'components/Link'
-{ Separator } = require 'components/Separator'
-{ Select } = require 'components/Select'
-{ Stepper } = require 'components/Stepper'
-{ TextInput } = require 'components/TextInput'
-{ Template } = require 'components/Template'
-{ View } = require 'components/View'
-{ CarouselComponent } = require 'components/CarouselComponent'
-{ PageTransitionComponent } = require 'components/PageTransitionComponent'
-{ SortableComponent } = require 'components/SortableComponent'
-{ TabComponent } = require 'components/TabComponent'
-{ TransitionPage } = require 'components/PageTransitionComponent'
-
 # Exports for theme support 
 _.assign exports,
 	defaultTitle: "www.framework.com"
 	app: undefined
 	components: [
 		'Button', 
+		'Footer'
 		'Header', 
 		'Radiobox',
 		'Checkbox',
+		'Container',
 		'DocComponent',
 		'Toggle',
 		'Tooltip',
@@ -57,12 +34,12 @@ _.assign exports,
 		'TextInput',
 		'Link', 
 		'Separator', 
-		'TransitionPage', 
 		'View',
 		'Template',
+		'FormComponent'
+		"ProgressComponent"
 		'CarouselComponent', 
 		'SortableComponent'
-		'PageTransitionComponent'
 		'TabComponent'
 		]
 	theme: theme
@@ -71,17 +48,20 @@ _.assign exports,
 
 # Add components to window
 exports.components.forEach (componentName) ->
-	window[componentName] = class FrameworkComponent extends eval(componentName)
+	mod = require "components/#{componentName}"
+	component = mod[componentName]
+
+	window[componentName] = class FrameworkComponent extends component
 		constructor: (options = {}) ->
 			@app = exports.app
 			super options
-
 
 # ... and finally, the App class
 class window.App extends FlowComponent
 	constructor: (options = {}) ->
 
 		exports.app = @
+		window.app = @
 
 		_.defaults options,
 			backgroundColor: white
@@ -90,57 +70,9 @@ class window.App extends FlowComponent
 			contentWidth: Screen.width
 			showKeys: true
 			perspective: 1000
+			screenshot: true
 
 		super options
-
-		@_wrapLayer = (flowLayer) ->
-
-			flowLayer._flowLayer = flowLayer
-
-			return flowLayer if flowLayer instanceof ScrollComponent
-			return flowLayer if flowLayer._flowWrapped
-
-			# Make the layer at least match the device size
-			flowLayer.width = Math.max(flowLayer.width, @width)
-			flowLayer.height = Math.max(flowLayer.height, @height)
-
-			size = @size
-			# Save the parent so we can clean up when we re-wrap this layer
-			if @ in flowLayer.ancestors()
-				content = flowLayer?.parent
-				scroll = content?.parent
-				if scroll instanceof ScrollComponent
-					previousWrappingScroll = scroll
-					previousWrappingContent = content
-			layer = layoutPage(flowLayer, size)
-			layer = layoutScroll(layer, size)
-			if flowLayer isnt layer and
-			   previousWrappingContent?.children.length is 0 and
-			   previousWrappingScroll?.children.length is 1 and
-			   previousWrappingScroll?.children[0] is previousWrappingContent
-				# we wrapped the layer
-				previousWrappingScroll.destroy()
-
-			# Mark the layer so we don't layout it twice'
-			layer._flowLayer = flowLayer
-
-			# Forward the scroll events from created scroll components
-			for scroll in [layer, layer.children...]
-
-				@_forwardScrollEvents(scroll)
-
-				if scroll instanceof ScrollComponent
-					inset = {}
-					inset.top = @header?.height or 0 if scroll.y is 0
-					inset.bottom = @footer?.height or 0 if scroll.maxY is @height
-					scroll.contentInset = inset
-					flowLayer._flowScroll = scroll
-
-			# Set the background color for he created scroll component
-			if layer instanceof ScrollComponent
-				layer.backgroundColor = @backgroundColor
-
-			return layer
 
 		_.assign @,
 			chrome: options.chrome
@@ -148,6 +80,9 @@ class window.App extends FlowComponent
 			contentWidth: options.contentWidth
 			_windowFrame: {}
 			views: []
+			keyboard: Keyboard
+			preload: new Promise (resolve, reject) -> _.defer resolve
+	
 
 		# Transition
 		 
@@ -242,7 +177,8 @@ class window.App extends FlowComponent
 		Utils.define @, 'focused', 		null, 		@_showFocused,	_.isObject,		"App.focused must be an html element."
 		Utils.define @, 'loading', 		false, 		@_showLoading, 	_.isBoolean,	"App.loading must be a boolean (true or false)."
 		Utils.define @, 'viewPoint',	{x:0, y:0}, undefined,		_.isObject, 	'App.viewPoint must be an point object (e.g. {x: 0, y: 0}).'
-		
+		Utils.define @, 'chromeOpacity', options.chromeOpacity, @_setChromeOpacity, _.isNumber, "App.chromeOpacity must be a number between 0 and 1."
+
 		# when transition starts, update the header
 		@onTransitionStart @_updateHeader
 
@@ -253,6 +189,12 @@ class window.App extends FlowComponent
 
 	# ---------------
 	# Private Methods
+
+	_setChromeOpacity: (num) =>
+		num = _.clamp(num, 0, 1)
+		for layer in [@header, @footer]
+			continue if not layer
+			layer.opacity = num
 
 	_showFocused: (el) =>
 		# possibly... an app state dealing with an on-screen keyboard
@@ -380,6 +322,12 @@ class window.App extends FlowComponent
 	# show next view
 	showNext: (layer, loadingTime, options={}) ->
 		return if @isTransitioning
+		return if layer is @current
+
+		# prepare to load
+
+		try @header._expand()
+		try @footer._expand()
 
 		@_initial ?= true	
 
@@ -398,21 +346,37 @@ class window.App extends FlowComponent
 		layer.preload.then(
 
 			# load up the new View with the response data
-			(response) =>
-				new Promise( (resolve) => 
-					Utils.bind( layer, -> layer.load(response) )
-					resolve()
-				)
+			(response) => new Promise( 
 
-			).then( =>
-				# transition to new View
-				if loadingTime?
-					Utils.delay loadingTime, =>
+				(resolve) => 
+					Utils.bind( layer, -> 
+						try 
+							layer.load(response) 
+						catch error
+							console.error(error)
+						)
+					resolve(response)
+		
+			).then( 
+				(response) =>
+					layer.updateContent()
+					
+					Utils.delay 0, =>
+						try 
+							layer.postload(response)
+						catch error
+							console.error(error)
+
+						# transition to new View
+						if loadingTime?
+							Utils.delay loadingTime, =>
+								@_transitionToNext(layer, options)
+							return
+
 						@_transitionToNext(layer, options)
-					return
-
-				@_transitionToNext(layer, options)
-				)
+				
+			).catch( (reason) -> throw new Error(reason) )
+		).catch( (reason) -> throw new Error(reason) )
 
 	# show previous view
 	showPrevious: (options={}) =>
@@ -420,6 +384,9 @@ class window.App extends FlowComponent
 		return if @isTransitioning
 
 		# prepare to load
+
+		try @header._expand()
+		try @footer._expand()
 
 		@focused?.blur()
 
@@ -450,53 +417,92 @@ class window.App extends FlowComponent
 		layer.preload.then(
 
 			# load up the new View with the response data
-			(response) =>
-				new Promise( (resolve) => 
-					Utils.bind( layer, -> layer.load(response) )
-					resolve()
-				)
+			(response) => new Promise( 
 
-			).then( =>
-				# transition to new View
-				if loadingTime?
-					Utils.delay loadingTime, =>
+				(resolve) => 
+					Utils.bind( layer, -> 
+						try 
+							layer.load(response) 
+						catch error
+							console.error(error)
+						)
+					resolve(response)
+		
+			).then( 
+				(response) =>
+					layer.updateContent()
+					
+					Utils.delay 0, =>
+						try 
+							layer.postload(response)
+						catch error
+							console.error(error)
+							
+						# transition to new View
+						if loadingTime?
+							Utils.delay loadingTime, =>
+								@_transitionToPrevious(previous?.transition, options.animate, current, layer)
+							return
+
 						@_transitionToPrevious(previous?.transition, options.animate, current, layer)
+
+			).catch( (reason) -> throw new Error(reason) )
+		).catch( (reason) -> throw new Error(reason) )
+
+	getScreenshot: (options = {}) =>
+		return new Promise (resolve, reject) =>
+				
+			_.defaults options,
+				layer: @
+				name: "screenshot"
+				type: "png"
+				style:
+					height: '100%'
+					width: '100%'
+
+			load = new Promise (rs, rj) ->
+				if @_isDomToImageLoaded?
+					rs()
 					return
+			
+				domtoimageCDN = "https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.js"
 
-				@_transitionToPrevious(previous?.transition, options.animate, current, layer)
-				)
-
-	getScreenshot: (layer, options = {}) =>
-		unless @_isDomToImageLoaded?
-			Utils.domLoadScript(
-				"https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.js", 
-				=> 
+				Utils.domLoadScript domtoimageCDN, => 
 					@_isDomToImageLoaded = true
-					@getScreenshot(layer, options)
-				)
-			return
-		
-		_.defaults options,
-			layer: @
-			name: "screenshot"
-			type: "png"
-			style:
-				height: '100%'
-				width: '100%'
+					rs()
 
-		node = options.layer._element
-		func = domtoimage['to' + _.startCase(options.type)]
-		
-		func(node, {cacheBust: true, style: options.style}).then( 
-			(d) ->
-				link = document.createElement('a')
-				link.download = options.name + '.' + options.type
-				link.href = d
-				link.click()
-		).catch( 
-			(error) -> 
-				throw "Screenshot failed."
+			load.then( ->
+				node = options.layer._element
+				func = domtoimage['to' + _.startCase(options.type)]
+				
+				func(node, {cacheBust: true, style: options.style})
+				.then( (url) ->
+					link = document.createElement('a')
+					link.download = options.name + '.' + options.type
+					link.href = url
+					link.click()
+					resolve()
+				).catch (error) -> 
+					console.log(error)
 			)
+
+	screenshotViews: (views, options = {}) =>
+		i = 0
+			
+		loadNext = =>
+			view = views[i]
+			return if not view
+
+			@showNext(view)
+			i++
+			
+		@onTransitionEnd =>
+			Utils.delay 2.5, =>
+				o = _.clone(options)
+				o.name = @current?.key
+				@getScreenshot(o).then loadNext
+		
+		loadNext()
 	
 	@define "windowFrame",
 		get: -> return @_windowFrame

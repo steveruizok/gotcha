@@ -13,29 +13,40 @@ view = new View
 
 view.onLoad ->
 
-	for i in _.range(5)
-		container = new Layer
+	for i in _.range(10)
+		container = new Container
 			name: "Container"
 			parent: @content
+			width: @width - 32
 			backgroundColor: null
 		
-		label = new Label
-			name: "Label"
-			parent: container
-			text: "Label for this photo"
+		Utils.bind container, ->
 			
-		new Layer
-			name: "Photo"
-			image: Utils.randomImage()
-			parent: container
-			width: @width - 32
-			
-		Utils.offsetY(container.children)
-		Utils.contain(container)
-	
-	Utils.offsetY(@content.children, 32)
+			label = new Label
+				parent: @
+				name: "Label"
+				text: "Label for these photos"
+				
+			pic = new Layer
+				parent: container
+				name: "Photo"
+				y: label.maxY
+				image: Utils.randomImage()
+				width: (@width - 16) / 2
+				
+			new Layer
+				parent: container
+				name: "Photo"
+				y: label.maxY
+				x: pic.maxX + 16
+				image: Utils.randomImage()
+				width: (@width - 16) / 2
 
-	@updateContent()
+view.onPostload ->
+	Utils.delay 0, =>
+		@pad()
+		Utils.stack(@content.children, 32)
+		@updateContent()
 	
 # 	footerContainer = new Layer
 # 		parent: @
@@ -118,3 +129,4 @@ view.onLoad ->
 # 			type: screenshotTypeSelect.value
 
 app.showNext(view)
+	

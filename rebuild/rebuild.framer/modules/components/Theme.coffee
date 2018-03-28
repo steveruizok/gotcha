@@ -501,10 +501,12 @@ updateTheme = (values = {}) ->
 		}
 
 	 	input::-webkit-input-placeholder { /* Chrome/Opera/Safari */
-	 	  -webkit-text-fill-color: #{combinedTheme.textInput.default.color};
+	 	  -webkit-text-fill-color: rgba(0,0,0,0);
 	 	  font-family: #{combinedTheme.typography.Sans.fontFamily};
 	 	  font-size: #{Utils.px(combinedTheme.typography.Body1.fontSize)};
 	 	  font-weight: #{combinedTheme.typography.Body1.fontWeight};
+	 	  background-color: none;
+	 	  background: none;
 	 	}
 	""")
 		

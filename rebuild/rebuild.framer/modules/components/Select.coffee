@@ -24,6 +24,7 @@ class exports.Select extends Layer
 			options: ['Rafael', 'Michelangelo', 'Donatello', 'Leonardo']
 			selectedIndex: -1
 			disabled: false
+			value: undefined
 
 		@customTheme = undefined
 		@customOptions = {}
@@ -157,6 +158,8 @@ class exports.Select extends Layer
 		Utils.define @, 'selectedIndex', options.selectedIndex, @_setSelected, _.isNumber, "Select.selectedIndex must be a number."
 
 		delete @__instancing
+
+		@value = options.value
 
 		# ---------------
 		# Events
@@ -311,7 +314,14 @@ class exports.Select extends Layer
 	# Special Definitions
 
 	@define "value",
-		get: -> return @textLayer.text
+		get: -> return @optionLayers[@selectedIndex]?.value
+		set: (value) ->
+			return if @__constructor
+			return if value is @value
+			return if not value
+
+			option = _.find(@optionLayers, {value: value})
+			@selectedIndex = option?.index ? -1
 
 
 class Option extends Layer

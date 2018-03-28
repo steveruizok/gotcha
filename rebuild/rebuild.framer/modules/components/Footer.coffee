@@ -17,8 +17,8 @@ class exports.Footer extends Layer
 			clip: true
 			shadowY: -1
 			shadowColor: 'rgba(0,0,0,.16)'
-			backgroundColor: if Utils.isChrome() then '#FFF' else 'rgba(255,255,255,.65)'
-			backgroundBlur: 30
+			backgroundColor: '#FFF'# if Utils.isChrome() then '#FFF' else 'rgba(255,255,255,.65)'
+			# backgroundBlur: 30
 
 		_.assign @,
 			tint: '#007AFF'

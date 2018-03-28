@@ -18,6 +18,8 @@ class exports.TextInput extends Layer
 		_.defaults options,
 			name: 'TextInput'
 			width: 260
+
+			password: false
 			placeholder: "Placeholder"
 			disabled: false
 			clip: true
@@ -50,7 +52,7 @@ class exports.TextInput extends Layer
 			y: Align.center()
 			width: @width
 			padding: theme[MODEL].default.padding ? 12
-			backgroundColor: theme[MODEL].default.backgroundColor ? white
+			backgroundColor: 'none'
 			fontFamily: theme[MODEL].default.fontFamily ? "Helvetica"
 			fontSize: options.fontSize ? theme[MODEL].default.fontSize ? 13
 			textAlign: options.textAlign ? theme[MODEL].default.textAlign ? "left"
@@ -76,7 +78,7 @@ class exports.TextInput extends Layer
 			width: Utils.px(@width - 24)
 			height: Utils.px(@height)
 			padding: "0 #{Utils.px(theme[MODEL].default.padding ? 12)}"
-			backgroundColor: theme[MODEL].default.backgroundColor ? white
+			backgroundColor: 'rgba(0,0,0,0)'
 			textAlign: options.textAlign ? theme[MODEL].default.textAlign ? "left"
 			textTransform: options.textTransform ? theme[MODEL].default.textTransform ? "none"
 			fontFamily: options.fontFamily ? theme.typography.Body2.fontFamily ? "Helvetica"
@@ -100,6 +102,7 @@ class exports.TextInput extends Layer
 		Utils.define @, 'hovered', 	false, 				@_showHovered, 	_.isBoolean, 'TextInput.hovered must be a boolean.'
 		Utils.define @, 'focused', 	false,				@_showFocused, 	_.isBoolean, 'TextInput.focused must be a boolean.'
 		Utils.define @, 'disabled',	options.disabled,	@_showDisabled,	_.isBoolean, 'TextInput.disabled must be a boolean.'
+		Utils.define @, 'password',	options.password,	@_setPassword,	_.isBoolean, 'TextInput.password must be a boolean.'
 		
 		delete @__instancing
 
@@ -116,7 +119,8 @@ class exports.TextInput extends Layer
 			@app.focused = @_input
 			@focused = true
 
-		@value = options.value
+		_.assign @,
+			value: options.value
 
 		# ---------------
 		# Cleanup
@@ -125,6 +129,13 @@ class exports.TextInput extends Layer
 
 	# ---------------
 	# Private Functions
+	
+	_setPassword: (bool) =>
+		if bool
+			@_input.setAttribute "type", "password"
+			return
+
+		@_input.setAttribute "type", "text"
 	
 	_setValue: () =>
 		value = @_input.value
@@ -183,6 +194,6 @@ class exports.TextInput extends Layer
 		set: (value) ->
 			return if @__constructor
 			
-			@_input.value = value
+			@_input.value = value ? ""
 			@textLayer.visible = @value is ""
 			@emit "change:value", value, @

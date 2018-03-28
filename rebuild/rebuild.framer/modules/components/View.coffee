@@ -55,15 +55,16 @@ class exports.View extends ScrollComponent
 		Utils.define @, 'load', 			undefined, 				undefined,	_.isFunction, 	'View.load must be a Function.'
 		Utils.define @, 'preload', 			preload, 				undefined, 	isPromise, 		'View.preload must be a Promise.'
 		Utils.define @, 'unload', 			undefined, 				undefined, 	_.isFunction, 	'View.unload must be a Function.'
+		Utils.define @, 'postload', 		undefined, 				undefined, 	_.isFunction, 	'View.unload must be a Function.'
 		
 		delete @__instancing
 
 		# unless padding is specifically null, set padding defaults
 		if @padding?
 			_.defaults @padding,
-				left: 16,
-				right: 16,
-				top: 16,
+				left: 0,
+				right: 0,
+				top: 32,
 
 		# ---------------
 		# Events
@@ -109,25 +110,46 @@ class exports.View extends ScrollComponent
 	# ---------------
 	# Public Methods
 	
+	pad: (left = 16, right = 16) =>
+		width = @width - (right + left)
+
+		for layer in @content.children
+			x = layer.x ? 0
+			maxX = layer.maxX ? (x + layer.width)
+
+			layer.width = Math.min(width, layer.width)
+			
+			if maxX > (@width - right)
+				layer.x = Align.right(-right)
+
+			layer.x = Math.max(left, x)
+
 
 	refresh: (loadingTime) =>
 		loadingTime ?= _.random(.3, .5)
 
 		@app.loading = true
-		@_unloadView()
 		
-		Utils.delay loadingTime, => @app.showNext(@)
+		Utils.delay loadingTime, => 
+			@_unloadView()
+			@app.showNext(@)
 
-
+	
 	onPreload: (callback) =>
 		@preload = new Promise callback
 
+	
 	onLoad: (callback) =>
 		@load = callback
 
+	
+	onPostload: (callback) =>
+		@postload = callback
 
+	
 	onUnload: (callback) -> 
 		@unload = callback
 
+	
 	# ---------------
 	# Special Definitions

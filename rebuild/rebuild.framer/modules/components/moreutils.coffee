@@ -259,6 +259,7 @@ Set all layers in an array to the same property or properties.
 
 @param {Array} layers The array of layers to align.
 @param {Object} options The properties to set.
+@param {Boolean} [minimum] Whether to use average values or minimum values for middle / center.
 @param {Boolean} [animate] Whether to animate to the new property.
 @param {Object} [animationOptions] The animation options to use.
 
@@ -270,7 +271,7 @@ Set all layers in an array to the same property or properties.
 		true
 		time: .5
 ###
-Utils.align = (layers = [], direction, animate, animationOptions = {}) -> 
+Utils.align = (layers = [], direction, minimum = true, animate, animationOptions = {}) -> 
 	minX = _.minBy(layers, 'x').x
 	maxX = _.maxBy(layers, 'maxX').maxX
 	minY = _.minBy(layers, 'y').y
@@ -279,10 +280,18 @@ Utils.align = (layers = [], direction, animate, animationOptions = {}) ->
 
 	options = switch direction
 		when "top" then {y: minY}
-		when "middle" then {midY: (maxY - minY)/2 + minY}
+		when "middle"
+			if minimum
+				{midY: _.minBy(layers, 'y').midY}
+			else 
+				{midY: (maxY - minY)/2 + minY}
 		when "bottom" then {maxY: maxY}
 		when "left" then {x: minY}
-		when "center" then {midX: (maxX - minX)/2 + minX}
+		when "center"
+			if minimum 
+				{midX: _.minBy(layers, 'x').midX}
+			else
+				{midX: (maxX - minX)/2 + minX}
 		when "right" then {maxX: maxX}
 		else {}
 
@@ -339,6 +348,27 @@ Utils.distribute = (layers = [], property, start, end, animate = false, animatio
 		_.assign layer, values[i]
 
 ###
+Stack layers.
+
+@param {Array} layers The array of layers to offset.
+@param {Number} distance The distance between each layer.
+@param {String} axis Whether to stack on the x or y axis.
+@param {Boolean} [animate] Whether to animate layers to the new position.
+@param {Object} [animationOptions] The animation options to use.
+
+###
+Utils.stack = (layers = [], distance = 0, axis = "vertical", animate = false, animationOptions = {}) ->
+	return if layers.length <= 1
+
+	if axis is "vertical" or axis is "y"
+		Utils.offsetY(layers, distance, animate, animationOptions)
+	else if axis is "horizontal" or axis is "x"
+		Utils.offsetX(layers, distance, animate, animationOptions)
+
+	return layers
+
+
+###
 Offset an array of layers vertically.
 
 @param {Array} layers The array of layers to offset.
@@ -355,7 +385,8 @@ Offset an array of layers vertically.
 		time: .5
 ###
 Utils.offsetY = (layers = [], distance = 0, animate = false, animationOptions = {}) -> 
-	
+	return if layers.length <= 1
+
 	startY = layers[0].y
 	values = []
 	values = layers.map (layer, i) ->
@@ -368,6 +399,8 @@ Utils.offsetY = (layers = [], distance = 0, animate = false, animationOptions = 
 			layer.animate values[i], animationOptions
 		else
 			_.assign layer, values[i]
+
+	return layers
 
 ###
 Offset an array of layers horizontally.
@@ -386,7 +419,8 @@ Offset an array of layers horizontally.
 		time: .5
 ###
 Utils.offsetX = (layers = [], distance = 0, animate = false, animationOptions = {}) -> 
-	
+	return if layers.length <= 1
+
 	startX = layers[0].x
 	values = []
 	values = layers.map (layer, i) ->
@@ -399,6 +433,8 @@ Utils.offsetX = (layers = [], distance = 0, animate = false, animationOptions = 
 			layer.animate values[i], animationOptions
 		else
 			_.assign layer, values[i]
+
+	return layers
 
 # Create a timer instance to simplify intervals.
 # Thanks to https://github.com/marckrenn.
@@ -610,28 +646,41 @@ Change a layer's size to fit around the layer's children.
 
 	Utils.hug(layerA, {top: 16, bottom: 24})
 ###
-Utils.hug = (layer, padding = {}) ->
+Utils.hug = (layer, padding) ->
 
-	if typeof padding is "number"
-		padding = 
-			top: padding
-			right: padding
-			bottom: padding
-			left: padding
+	def = 0
+	defStack = undefined
 
-	top = _.minBy(layer.children, 'y').y 
-	bottom = _.maxBy(layer.children, 'maxY').maxY
+	if typeof padding is "number" 
+		def = padding
+		defStack = padding
+		padding = {}
 
-	left = _.minBy(layer.children, 'x').x 
-	right = _.maxBy(layer.children, 'maxX').maxX
+	_.defaults padding,
+		top: def
+		bottom: def
+		left: def
+		right: def
+		stack: defStack
 
-	_.assign layer,
-		height: (bottom - top) + (padding.top ? 0) + (padding.bottom ? 0)
-		width: (right - left) + (padding.left ? 0) + (padding.right ? 0)
+	Utils.bind layer, ->
+		for child, i in @children
 
-	for child in layer.children
-		child.y = top + (child.y - top) + (padding.top ? 0)
-		child.x = left + (child.x - left) + (padding.left ? 0)
+			child.y += @padding.top
+
+			child.x += @padding.left
+
+			if @padding.right? > 0
+				@width = _.maxBy(@children, 'maxY')?.maxY + @padding.right
+
+		if @padding.stack? >= 0
+			Utils.offsetY(@children, @padding.stack)
+			Utils.delay 0, =>
+				Utils.contain(@, false, @padding.right, @padding.bottom)
+			return
+
+		Utils.contain(@, false, @padding.right, @padding.bottom)
+
 
 ###
 Increase or decrease a layer's size to contain its layer's children.
@@ -659,6 +708,7 @@ Utils.contain = (layer, fit = false, paddingX = 0, paddingY = 0) ->
 		width: maxChildX
 		height: maxChildY
 
+	return layer
 
 # get a status color based on a standard deviation
 # @example    Utils.getStatusColor(.04, false)
@@ -764,13 +814,8 @@ Utils.getLayerAtPoint = (point, array = Framer.CurrentContext._layers) ->
 #
 Utils.getLayersAtPoint = (point, array = Framer.CurrentContext._layers) ->
 	
-	layers = []
+	return array.filter (layer) -> Utils.pointInPolygon(point, Utils.pointsFromFrame(layer))
 	
-	for layer, i in array
-		if Utils.pointInPolygon(point, Utils.pointsFromFrame(layer))
-			layers.push(layer)
-			
-	return layers
 
 # Try to find the layer that owns a given HTML element. By default, it will check 
 # all layers in the current Framer context; but you can specify your own array of
@@ -1042,7 +1087,26 @@ Utils.randomText = (words = 12, sentences = false, paragraphs = false) ->
 #
 # @param {String} string The string to check.
 Utils.isEmail = (string) ->
-    return string.toLowerCase().match(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)
+    matches = string.toLowerCase().match(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)
+    return _.isArray(matches)
+
+# Get a relative date, x number of units before or after a start date.
+#
+# @param [Number] units The number of units from now.
+# @param [String] [unit] The type of unit to use; default is 'days'.
+# @param [String] [start] The time to start, in timestamp milliseconds. Defaults to _.now().
+
+Utils.getRelativeDate = (units = 0, unit = 'days', start) ->
+
+	start ?= _.now()
+
+	t = switch unit
+		when "minutes" then 1000*60
+		when "hours" then 1000*60*60
+		when "days" then 1000*60*60*24
+		when "years" then 1000*60*60*24*356
+
+	return new Date(start + (t * units))
 
 
 # Source words for Utils.randomText()

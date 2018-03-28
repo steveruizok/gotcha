@@ -55,15 +55,19 @@ class exports.Checkbox extends Layer
 		# ---------------
 		# Events
 
-		@onTap => 
-			return if @disabled 
-			@checked = !@checked
-		@onMouseOver => 
-			return if @disabled 
-			@hovered = true
-		@onMouseOut => 
-			return if @disabled 
-			@hovered = false
+		if Utils.isMobile()
+			@onTapEnd =>
+				@checked = !@checked
+		else
+			@onTap => 
+				return if @disabled 
+				@checked = !@checked
+			@onMouseOver => 
+				return if @disabled 
+				@hovered = true
+			@onMouseOut => 
+				return if @disabled 
+				@hovered = false
 
 
 		# ---------------

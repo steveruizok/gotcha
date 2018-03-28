@@ -1,4 +1,4 @@
-require "moreutils"
+require "components/moreutils"
 
 _.assign exports,
 	name: "Gotcha"
@@ -23,9 +23,30 @@ svgContext = undefined
 hoveredLayerTreeRow = undefined
 selectedLayerTreeRow = undefined
 layerTreeRows = []
+tintAlpha = .3
+hoveredColor = "rgba(72, 207, 255, 1.000)"
+selectedColor = "rgba(255, 1, 255, 1.000)"
+selectedTint = new Color(selectedColor).alpha(tintAlpha)
+hoveredTint = new Color(hoveredColor).alpha(tintAlpha)
 
 # --------------------
 # Helpers
+
+defineToggleProperty = (obj, property, trueCallback, falseCallback) ->
+	trueCallback ?= -> obj.element.classList.add(property)
+	falseCallback ?= -> obj.element.classList.remove(property)
+
+	Object.defineProperty obj, 
+		property,
+		get: -> return obj["_#{property}"]
+		set: (value) -> 
+			return if obj["_#{property}"] is value
+			obj["_#{property}"] = value
+
+			if value
+				trueCallback()
+			else
+				falseCallback()
 
 createElementId = (type, id, parent, assigns = {}) ->
 	el = document.createElement(type)
@@ -55,11 +76,22 @@ getScreenshot = ( options = {}) =>
 		
 		# layerCx = getParentCx(options.layer)
 
+		layer = options.layer
+
+		savedProps =
+			parent: layer.parent
+			point: layer.point
+
+		_.assign layer,
+			parent: null
+			x: 0
+			y: 0
+
 		_.defaults options,
-			name: options.layer.name ? "Screenshot"
+			name: layer.name ? "Screenshot"
 			type: "png"
-			height: options.layer._element.clientHeight
-			width: options.layer._element.clientWidth
+			height: layer.height + layer.screenFrame.x
+			width: layer.width
 			style:
 				height: '100%'
 				width: '100%'
@@ -87,7 +119,10 @@ getScreenshot = ( options = {}) =>
 				link.download = options.name + '.' + options.type
 				link.href = url
 				link.click()
+				layer.props = savedProps
+
 				resolve()
+
 			).catch (error) -> 
 				console.log(error)
 		)
@@ -185,11 +220,11 @@ Utils.insertCSS """
 }
 
 .selected {
-	color: rgba(255, 1, 255, 1.000);
+	color: #{selectedColor};
 }
 
 .hovered {
-	color: rgba(72, 207, 255, 1.000);
+	color: #{hoveredColor};
 }
 
 .layer_tree_row:hover {
@@ -322,14 +357,14 @@ Utils.insertCSS """
 # --------------------
 # Classes
 
+# LAYER TREE
+
 class LayerTree
 	constructor: (options = {}) ->
 
 		@element = createElementId('div', 'layer_tree', leftPanel)
 
 		@layers = []
-
-		# make layer rows (create a class of this)
 
 	makeLayers: =>
 		rootLayers = currentLayers.filter( (layer) -> !layer.parent? )
@@ -359,6 +394,7 @@ class LayerTree
 			if layer.checked
 				getScreenshot(layer)
 
+# EXPORT CONTROL
 
 class ExportControl
 	constructor: (options = {}) ->
@@ -403,7 +439,8 @@ class ExportControl
 		Object.defineProperty @, 
 			"enabled",
 			get: -> return @_enabled
-			set: (bool) -> 
+			set: (bool) ->
+				return if @_enabled is bool
 				@_enabled = bool
 
 				layerTree.toggleCheckboxes(bool)
@@ -422,7 +459,7 @@ class ExportControl
 				@rightLabel.textContent = "Select"
 				
 
-# Layer Tree Row
+# LAYER TREE ROW
 
 class LayerTreeRow
 	constructor: (options = {}) ->
@@ -465,42 +502,13 @@ class LayerTreeRow
 
 
 		# definitions
-
-		Object.defineProperty @, 
-			"hovered",
-			get: -> return @_hovered
-			set: (bool) -> 
-				@_hovered = bool
-
-				if bool
-					@element.classList.add('hovered')
-				else
-					@element.classList.remove('hovered')
-		
-		Object.defineProperty @, 
-			"selected",
-			get: -> return @_selected
-			set: (bool) -> 
-				@_selected = bool
-
-				if bool
-					@element.classList.add('selected')
-				else
-					@element.classList.remove('selected')
-		
-		Object.defineProperty @, 
-			"checked",
-			get: -> return @_checked
-			set: (bool) -> 
-				@_checked = bool
-
-				if bool
-					@checkbox.classList.add('checked')
-				else
-					@checkbox.classList.remove('checked')
+		defineToggleProperty(@, "hovered")
+		defineToggleProperty(@, "selected")
+		defineToggleProperty(@, "checked")
 
 
-# Layer Spec Group
+# LAYER SPEC GROUP
+
 class LayerSpecGroup
 	constructor: (options = {}) ->
 
@@ -531,51 +539,29 @@ class LayerSpecGroup
 
 		@element = createElement('div', 'layer_spec_group', layerSpecs)
 
-		Object.defineProperty @, 
-			"visible",
-			get: -> return @_visible
-			set: (bool) -> 
-				return if bool is @_visible
-				@_visible = bool
-
-				if bool
-					return if !@open
-					@element.classList.remove "hidden"
-					return
-
+		defineToggleProperty(@, "visible",
+			(=> 
 				return if !@open
-				@element.classList.add "hidden"
+				@element.classList.remove "hidden")
+			(=>
+				return if !@open
+				@element.classList.add "hidden")
+			)
+		
+		defineToggleProperty(@, "open",
+			(=> @element.classList.remove "hidden")
+			(=> @element.classList.add "hidden")
+			)
 
-		Object.defineProperty @, 
-			"open",
-			get: -> return @_open
-			set: (bool) ->
-				return if bool is @_open
-				@_open = bool
-
-				if bool
-					@element.classList.remove "hidden"
-					return
-
-				@element.classList.add "hidden"
-
-		Object.defineProperty @, 
-			"special",
-			get: -> return @_special
-			set: (bool) ->
-				return if bool is @_special
-				@_special = bool
-
-				if bool
-					@titleElement?.classList.add "special"
-					return
-
-				@titleElement?.classList.remove "special"
+		defineToggleProperty(@, "special",
+			(=> @titleElement?.classList.add "special")
+			(=> @titleElement?.classList.remove "special")
+			)
 
 		@open = !@closed
 		@special = false
 
-# Layer Spec Row
+# LAYER SPEC ROW
 
 class LayerSpecRow
 	constructor: (options = {}) ->
@@ -602,7 +588,7 @@ class LayerSpecRow
 			i++
 
 
-# String Container
+# CONTAINER
 
 class Container
 	constructor: (options = {}) ->
@@ -652,18 +638,12 @@ class Container
 				@element.value = value ? @defaultValue
 				@default = @element.value is @defaultValue
 
-		Object.defineProperty @, 
-			"default",
-			get: -> return @_default
-			set: (bool) -> 
-				return if bool is @_default
-				@_default = bool
-
-				if bool
-					@element.classList.add "default_value"
-					return
-
-				@element.classList.remove "default_value"
+		defineToggleProperty(@, "default",
+			(=> 
+				@element.classList.add "default_value")
+			(=>
+				@element.classList.remove "default_value")
+			)
 
 		# events
 
@@ -679,6 +659,17 @@ class Container
 
 			Utils.delay .15, =>
 				@element.classList.remove('copy')
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -705,6 +696,62 @@ class Overlay
 		_.assign @,
 			frameElement: Framer.Device.screen._element
 			svg: svg
+
+		# Lines
+
+		@lines = {}
+
+		['top', 'right', 'bottom', 'left'].forEach (dir) =>
+			line = document.createElementNS("http://www.w3.org/2000/svg", 'line')
+			@svg.appendChild(line)
+			Utils.setAttributes line, 
+				'stroke-width': '1px'
+				stroke: hoveredColor
+
+			caps = _.range(2).map (i) =>
+				cap = document.createElementNS("http://www.w3.org/2000/svg", 'line')
+				@svg.appendChild(cap)
+				Utils.setAttributes cap, 
+					'stroke-width': '1px'
+					stroke: hoveredColor
+
+				return cap
+
+			@lines[dir] =
+				line: line
+				caps: caps
+
+		# Selected Lines
+
+		@selectedLines = {}
+
+		['top', 'right', 'bottom', 'left'].forEach (dir) =>
+			line = document.createElementNS("http://www.w3.org/2000/svg", 'line')
+			@svg.appendChild(line)
+			Utils.setAttributes line, 
+				'stroke-width': '1px'
+				stroke: selectedColor
+				'stroke-dasharray': '4 4'
+
+			@selectedLines[dir] =
+				line: line
+
+		# Rects
+
+		@rects = {}
+		['hovered', 'selected'].forEach (state, i) =>
+			rect = document.createElementNS("http://www.w3.org/2000/svg", 'rect')
+			@svg.appendChild(rect)
+			Utils.setAttributes rect, 
+				height: 0
+				width: 0
+				x: 0
+				y: 0
+				strokeWidth: 1
+				fill: if i is 0 then hoveredTint else selectedTint
+				stroke: if i is 0 then hoveredColor else selectedColor
+
+			@rects[state] = rect
 
 
 		# ----------------
@@ -743,45 +790,153 @@ class Overlay
 			'pointer-events': 'none'
 			backgroundColor: "rgba(255,255,255,.12"
 
+		@screen = _.clone(Screen.frame)
+		@screen.screenFrame = Screen.frame
 
-		@hoveredRect = document.createElementNS("http://www.w3.org/2000/svg", 'rect')
-		@svg.appendChild(@hoveredRect)
 
-		@selectedRect = document.createElementNS("http://www.w3.org/2000/svg", 'rect')
-		@svg.appendChild(@selectedRect)
+	styleLines: (style) =>
+		for line in _.values(@lines)
+			@styleLine(line, style)
+	
+
+	styleLine: (line, style) =>
+		Utils.setAttributes(line.line, style)
+		
+		return unless line.caps?
+
+		for cap in line.caps
+			Utils.setAttributes(cap, style)
+
+
+	clearLines: =>
+		@styleLines
+			opacity: 0
+
+		for rect in _.values(@rects)
+			Utils.setAttributes rect,
+				opacity: 0
+
+
+	clearSelected: =>
+		for line in _.values(@selectedLines)
+			Utils.setAttributes(line.line, {opacity: 0})
+
+
+	setLine: (line, pointA, pointB) =>
+
+		@styleLine line,
+			opacity: 1
+
+		Utils.setAttributes line.line, 
+			x1: pointA.x
+			y1: pointA.y
+			x2: pointB.x
+			y2: pointB.y
+
+		return unless line.caps?
+
+		if pointA.x is pointB.x
+			Utils.setAttributes line.caps[0], @getCapCX(pointA, [-4, 0, 4, 0])
+			Utils.setAttributes line.caps[1], @getCapCX(pointB, [-4, 0, 4, 0])
+		else if pointA.y is pointB.y
+			Utils.setAttributes line.caps[0], @getCapCX(pointA, [0, -4, 0, 4])
+			Utils.setAttributes line.caps[1], @getCapCX(pointB, [0, -4, 0, 4])
+
+
+	getCapCX: (point, offsets = []) ->
+		if 0 > point.x > Screen.width
+			fX = point.x
+		
+		if 0 > point.y > Screen.height
+			fY = point.y
+
+		return {
+			x1: fX ? (point.x + (offsets[0] ? 0))
+			y1: fY ? (point.y + (offsets[1] ? 0))
+			x2: fX ? (point.x + (offsets[2] ? 0))
+			y2: fY ? (point.y + (offsets[3] ? 0))
+		}
+
+
+	getFrame: (layer) ->
+		frame = layer.screenFrame
+		_.assign frame,
+			midX: frame.x + (frame.width / 2)
+			midY: frame.y + (frame.height / 2)
+			maxX: frame.x + frame.width
+			maxY: frame.y + frame.height
+
+		return frame
+
+
+	targetToLayer: (layer, selected = false) =>
+		color = if selected then selectedColor else hoveredColor
+
+		frame = @getFrame(layer)
+		selected = @getFrame(@selectedLayer)
+
+		if frame.y > selected.maxY
+			@setLine(@lines.top,	{x: frame.midX, y: selected.maxY + 4}, {x: frame.midX, y: frame.y - 4})
+		if frame.maxY < selected.y
+			@setLine(@lines.bottom,	{x: frame.midX, y: frame.maxY + 4}, {x: frame.midX, y: selected.y - 4})
+		if frame.x > selected.maxX
+			@setLine(@lines.right,	{x: selected.maxX + 4, y: frame.midY}, {x: frame.x - 4, y: frame.midY})
+		if frame.maxX < selected.x	
+			@setLine(@lines.left,	{x: frame.maxX + 4, y: frame.midY}, {x: selected.x - 4, y: frame.midY})
 
 
 	showHovered: () =>
 		layer = specPanel.hovered
+		return if not layer
 
-		if not layer
-			Utils.setAttributes @hoveredRect,
-				opacity: 0
-			return
-
-		Utils.setAttributes @hoveredRect,
+		Utils.setAttributes @rects.hovered,
 			width: layer.width
 			height: layer.height
 			x: layer.screenFrame.x
 			y: layer.screenFrame.y
-			fill: "#7dddff"
-			opacity: .5
+			opacity: 1
+
+		@targetToLayer(layer)
+
 
 	showSelected: () =>
 		layer = specPanel.selected
-
 		if not layer
-			Utils.setAttributes @selectedRect,
-				opacity: 0
+			@clearSelected()
 			return
 
-		Utils.setAttributes @selectedRect,
-			width: layer.width
-			height: layer.height
-			x: layer.screenFrame.x
-			y: layer.screenFrame.y
-			fill: "#ff62b0"
-			opacity: .5
+		selected = @getFrame(@selectedLayer)
+
+		Utils.setAttributes @rects.selected,
+			width: selected.width
+			height: selected.height
+			x: selected.x
+			y: selected.y
+			opacity: 1
+
+		@setLine(@selectedLines.top,	{x: 0, y: selected.y}, {x: @screen.width, y: selected.y})
+		@setLine(@selectedLines.bottom,	{x: 0, y: selected.maxY}, {x: @screen.width, y: selected.maxY})
+		@setLine(@selectedLines.right,	{x: selected.maxX, y: 0}, {x: selected.maxX, y: @screen.height})
+		@setLine(@selectedLines.left,	{x: selected.x, y: 0}, {x: selected.x, y: @screen.height})
+
+
+	refresh: =>
+		@clearLines()
+
+		@hoveredLayer = specPanel.hovered ? @screen
+		@selectedLayer = specPanel.selected ? @screen
+		
+		@showHovered()
+		@showSelected()
+
+
+
+
+
+
+
+
+
 
 
 # ----------------------------
@@ -1015,8 +1170,7 @@ class SpecPanel
 	_refresh: () =>
 		layer = @selected ? @hovered
 
-		overlay.showHovered()
-		overlay.showSelected()
+		overlay.refresh()
 
 		_.forIn @props, (value, key) =>
 			@props[key].value = undefined

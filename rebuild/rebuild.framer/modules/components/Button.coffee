@@ -143,8 +143,8 @@ class exports.Button extends Layer
 			@on "change:width", =>
 				@content.x = 0
 				@content.width = @width
-				@textLayer.x = Align.center()
 				@textLayer.width = @width
+				@textLayer.x = Align.center()
 				@loadingIcon.x = Align.center()
 
 		# Fix position, now that we have our size
@@ -181,8 +181,7 @@ class exports.Button extends Layer
 
 
 		if Utils.isMobile()
-			@onTap @_doSelect
-
+			@onTapEnd @_doSelect
 		else
 			@onTouchStart (event) => @_showTouching(true, null, event)
 			@onTouchEnd (event) => @_showTouching(false, null, event)

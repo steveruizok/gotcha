@@ -22,6 +22,7 @@ class exports.Toggle extends Layer
 
 			options: ["Off", "On"]
 			icon: false
+			value: false
 			toggled: false
 
 		@customTheme = if options.backgroundColor and options.color then @_getCustomTheme(options.color, options.backgroundColor) else undefined
@@ -173,7 +174,9 @@ class exports.Toggle extends Layer
 
 	@define "value", ->
 		get: -> return @toggled
-		set: (value) -> @toggled = value
+		set: (value) -> 
+			return unless _.isBoolean(value)
+			# @toggled = value
 
 	@define "active",
 		get: -> return @_active
@@ -192,5 +195,6 @@ class exports.Toggle extends Layer
 			@activeLayer = @children[num]
 
 			@emit "change:active", num, @options[num], @children[num]
+			@emit "change:value", @toggled, @
 
 
