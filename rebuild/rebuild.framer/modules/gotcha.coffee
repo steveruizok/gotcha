@@ -25,6 +25,7 @@ hoveredLayerTreeRow = undefined
 selectedLayerTreeRow = undefined
 layerTreeRows = []
 tintAlpha = .3
+gapWidth = 4
 hoveredColor = new Color("#48cfff")
 selectedColor = new Color("#ff02ff")
 hoveredTint = hoveredColor.alpha(tintAlpha)
@@ -253,6 +254,8 @@ Utils.insertCSS """
  	border-left: 1px solid #2d2d2d;
  	border-right: 1px solid #2d2d2d;
 	z-index: 6;
+	font-size: 12px;
+	font-family: Helvetica;
 }
 
 
@@ -273,8 +276,6 @@ Utils.insertCSS """
 .layer_spec_group_header {
 	width: 100%;
 	background-color: #1d1d1d;
-	font-size: 12px;
-	font-family: Helvetica;
 	color: #888888;
 	padding: 2px 8px;
 	border-bottom: 1px solid #000;
@@ -294,8 +295,6 @@ Utils.insertCSS """
 	min-height: 28px;
 	padding: 2px 8px;
 	background-color: #141413;
-	font-size: 12px;
-	font-family: Helvetica;
 	color: #888888;
 }
 
@@ -418,7 +417,6 @@ class ExportControl
 		@leftLabel = createElementId('span', 'spec_detail', @element, {
 			textContent: 'Export Layers'
 			})
-
 		_.assign @leftLabel.style,
 			position: 'absolute'
 			left: '16px'
@@ -426,12 +424,13 @@ class ExportControl
 		@rightLabel = createElementId('span', 'spec_detail', @element, {
 			textContent: if Utils.isFramerStudio() then 'Open in Browser' else 'Select'
 			})
-
 		_.assign @rightLabel.style,
 			position: 'absolute'
 			right: '16px'
 
 		@rightLabel.classList.add 'link'
+
+		# EVENTS
 
 		@rightLabel.addEventListener "click", @rightCallback
 		@leftLabel.addEventListener "click", @leftCallback
@@ -711,6 +710,8 @@ class DistanceLine
 			'fill': '#000'
 			'rx': '4px'
 			'ry': '4px'
+			'x': '-999px'
+			'y': '-999px'
 			'fill': '#000'
 			'stroke': hoveredColor
 
@@ -789,27 +790,25 @@ class DistanceLine
 		maxX = Math.max(pointA.x, pointB.x)
 		maxY = Math.max(pointA.y, pointB.y)
 
-		@distance.textContent = distance
+		@distance.textContent = distance + (gapWidth * 2)
 		@distance.setAttribute('fill', color)
 		@distanceBox.setAttribute('stroke', color)
 
 		if pointA.x is pointB.x
-			Utils.setAttributes @caps[0], @getCapCX(pointA, [-4, 0, 4, 0])
-			Utils.setAttributes @caps[1], @getCapCX(pointB, [-4, 0, 4, 0])
+			Utils.setAttributes @caps[0], @getCapCX(pointA, [-gapWidth, 0, gapWidth, 0])
+			Utils.setAttributes @caps[1], @getCapCX(pointB, [-gapWidth, 0, gapWidth, 0])
 
 			@setDistanceContainer
 				x: maxX
 				y: maxY - (distance / 2)
 
 		else if pointA.y is pointB.y
-			Utils.setAttributes @caps[0], @getCapCX(pointA, [0, -4, 0, 4])
-			Utils.setAttributes @caps[1], @getCapCX(pointB, [0, -4, 0, 4])
+			Utils.setAttributes @caps[0], @getCapCX(pointA, [0, -gapWidth, 0, gapWidth])
+			Utils.setAttributes @caps[1], @getCapCX(pointB, [0, -gapWidth, 0, gapWidth])
 			
 			@setDistanceContainer
 				x: maxX - (distance / 2)
 				y: maxY
-
-
 
 	hide: =>
 		@setStyle
@@ -838,14 +837,7 @@ class Overlay
 		_.assign @,
 			frameElement: Framer.Device.screen._element
 			svg: svg
-
-		# Lines
-
-		@lines = {}
-
-		['top', 'right', 'bottom', 'left'].forEach (dir) =>
-			@lines[dir] = new DistanceLine
-				parent: svg
+			screen: undefined
 
 		# Selected Lines
 
@@ -857,8 +849,7 @@ class Overlay
 				'stroke': selectedColor
 				'stroke-dasharray': '4 4'
 
-			@selectedLines[dir] =
-				line: line
+			@selectedLines[dir] = line
 
 		# Rects
 
@@ -874,6 +865,15 @@ class Overlay
 				stroke: if i is 0 then hoveredColor else selectedColor
 
 			@rects[state] = rect
+
+		# Lines
+
+		@lines = {}
+
+		['top', 'right', 'bottom', 'left'].forEach (dir) =>
+			@lines[dir] = new DistanceLine
+				parent: svg
+
 
 
 		# ----------------
@@ -915,71 +915,28 @@ class Overlay
 		@screen = _.clone(Screen.frame)
 		@screen.screenFrame = Screen.frame
 
-
-	styleLines: (style) =>
-		for line in _.values(@lines)
-			@styleLine(line, style)
-	
-
-	styleLine: (line, style) =>
-		Utils.setAttributes(line.line, style)
-		
-		return unless line.caps?
-
-		for cap in line.caps
-			Utils.setAttributes(cap, style)
-
-
 	clearLines: =>
-		for line in _.values(@lines)
+		for dir, line of @lines
 			line.hide()
 
-		for rect in _.values(@rects)
+		for type, rect of @rects
 			Utils.setAttributes rect,
 				opacity: 0
 
-
 	clearSelected: =>
-		for line in _.values(@selectedLines)
-			Utils.setAttributes(line.line, {opacity: 0})
-
+		for dir, line of @selectedLines
+			Utils.setAttributes line,
+				opacity: 0
 
 	setLine: (line, pointA, pointB, color = hoveredColor) =>
 
-		@styleLine line,
+		Utils.setAttributes line,
 			opacity: 1
 			stroke: color
-
-		Utils.setAttributes line.line, 
 			x1: pointA.x
 			y1: pointA.y
 			x2: pointB.x
 			y2: pointB.y
-
-		return unless line.caps?
-
-		if pointA.x is pointB.x
-			Utils.setAttributes line.caps[0], @getCapCX(pointA, [-4, 0, 4, 0])
-			Utils.setAttributes line.caps[1], @getCapCX(pointB, [-4, 0, 4, 0])
-		else if pointA.y is pointB.y
-			Utils.setAttributes line.caps[0], @getCapCX(pointA, [0, -4, 0, 4])
-			Utils.setAttributes line.caps[1], @getCapCX(pointB, [0, -4, 0, 4])
-
-
-	getCapCX: (point, offsets = []) ->
-		if 0 > point.x > Screen.width
-			fX = point.x
-		
-		if 0 > point.y > Screen.height
-			fY = point.y
-
-		return {
-			x1: fX ? (point.x + (offsets[0] ? 0))
-			y1: fY ? (point.y + (offsets[1] ? 0))
-			x2: fX ? (point.x + (offsets[2] ? 0))
-			y2: fY ? (point.y + (offsets[3] ? 0))
-		}
-
 
 	getFrame: (layer) ->
 		frame = layer.screenFrame
@@ -992,84 +949,82 @@ class Overlay
 		return frame
 
 
-	targetToLayer: (layer, selected = false) =>
-		color = if selected then selectedColor else hoveredColor
+	showDistances: (layer, selected = false) =>
+		if specPanel.selected
+			color = selectedColor 
+			layerA = specPanel.selected
+			layerB = specPanel.hovered ? @screen
+		else if specPanel.hovered
+			color = hoveredColor
+			layerA = specPanel.hovered
+			layerB = @screen
 
-		frame = @getFrame(layer)
-		selected = @getFrame(@selectedLayer)
+		frameA = @getFrame(layerA)
+		frameB = @getFrame(layerB)
 
-		if frame.y > selected.maxY 
-			@lines.top.setPoints({x: frame.midX, y: frame.y - 4}, {x: frame.midX, y: selected.maxY + 4}, color)
-		if frame.maxY < selected.y
-			@lines.bottom.setPoints({x: frame.midX, y: selected.y - 4}, {x: frame.midX, y: frame.maxY + 4}, color)
-		if frame.x > selected.maxX
-			@lines.right.setPoints({x: frame.x - 4, y: frame.midY}, {x: selected.maxX + 4, y: frame.midY}, color)
-		if frame.maxX < selected.x
-			@lines.left.setPoints({x: frame.maxX + 4, y: frame.midY}, {x: selected.x - 4, y: frame.midY}, color)
+		if layerB is @screen
+			@lines.top.setPoints	{x: frameA.midX, 	 		y: frameA.y - gapWidth}, 	{x: frameA.midX, 			 y: frameB.y + gapWidth}, 		color
+			@lines.bottom.setPoints	{x: frameA.midX, 	 		y: frameA.maxY + gapWidth}, {x: frameA.midX, 			 y: frameB.maxY - gapWidth}, 	color
+			@lines.right.setPoints	{x: frameA.x - gapWidth, 	y: frameA.midY}, 			{x: frameB.x + gapWidth,	 y: frameA.midY}, 				color
+			@lines.left.setPoints	{x: frameA.maxX + gapWidth, y: frameA.midY}, 			{x: frameB.maxX - gapWidth,  y: frameA.midY}, 				color
+			return
 
-		if frame.y < selected.y and
-		frame.x < selected.y and
-		frame.maxX < selected.maxX and
-		frame.maxY < selected.maxY
-
-			@lines.top.setPoints({x: selected.midX, y: selected.y - 4}, {x: selected.midX, y: frame.maxY + 4}, color)
-			@lines.bottom.setPoints({x: selected.midX, y: frame.y - 4}, {x: selected.midX, y: selected.maxY + 4}, color)
-			@lines.right.setPoints({x: selected.x - 4, y: selected.midY}, {x: frame.maxX + 4, y: selected.midY}, color)
-			@lines.left.setPoints({x: selected.maxX + 4, y: selected.midY}, {x: frame.x - 4, y: selected.midY}, color)
-
+		if frameA.y    > frameB.maxY
+			@lines.top.setPoints	{x: frameA.midX, 	 		y: frameA.y - gapWidth}, 	{x: frameA.midX, 	 		 y: frameB.maxY + gapWidth}, 	color
+		if frameA.maxY < frameB.y 	 
+			@lines.bottom.setPoints	{x: frameA.midX, 	 		y: frameB.y - gapWidth}, 	{x: frameA.midX, 	 		 y: frameA.maxY + gapWidth}, 	color
+		if frameA.x    > frameB.maxX 
+			@lines.right.setPoints	{x: frameA.x - gapWidth, 	y: frameA.midY}, 			{x: frameB.maxX + gapWidth, y: frameA.midY}, 				color
+		if frameA.maxX < frameB.x    
+			@lines.left.setPoints	{x: frameA.maxX + gapWidth, y: frameA.midY}, 			{x: frameB.x - gapWidth, 	 y: frameA.midY}, 				color
+	
 
 	showHovered: () =>
-		layer = @hoveredLayer
-		# return if not layer
+		layer = specPanel.hovered ? @screen
+		frame = @getFrame(layer)
 
 		Utils.setAttributes @rects.hovered,
-			width: layer.width
-			height: layer.height
-			x: layer.screenFrame.x
-			y: layer.screenFrame.y
+			width: frame.width
+			height: frame.height
+			x: frame.x
+			y: frame.y
 			opacity: 1
 			fill: if layer is @screen then 'none' else hoveredTint
 
-		# return if layer is @screen
-
-		@targetToLayer(layer)
-
 
 	showSelected: () =>
-		layer = @selectedLayer
-		if not specPanel.selected
-			@clearSelected()
-			return
 
-		selected = @getFrame(layer)
+		layer = specPanel.selected ? @screen
+		frame = @getFrame(layer)
 
 		Utils.setAttributes @rects.selected,
-			width: selected.width
-			height: selected.height
-			x: selected.x
-			y: selected.y
+			width: frame.width
+			height: frame.height
+			x: frame.x
+			y: frame.y
 			opacity: 1
 			fill: if layer is @screen then 'none' else selectedTint
 
-		return if layer is @screen
-
-		@targetToLayer(layer)
+		# set dashed lines
 		
-		@setLine(@selectedLines.top,	{x: 0, y: selected.y}, {x: @screen.width, y: selected.y}, selectedColor)
-		@setLine(@selectedLines.bottom,	{x: 0, y: selected.maxY}, {x: @screen.width, y: selected.maxY}, selectedColor)
-		@setLine(@selectedLines.right,	{x: selected.maxX, y: 0}, {x: selected.maxX, y: @screen.height}, selectedColor)
-		@setLine(@selectedLines.left,	{x: selected.x, y: 0}, {x: selected.x, y: @screen.height}, selectedColor)
+		if layer is @screen
+			@clearSelected()
+			return
+		
+		@setLine(@selectedLines.top,	{x: 0, y: frame.y}, {x: @screen.width, y: frame.y}, selectedColor)
+		@setLine(@selectedLines.bottom,	{x: 0, y: frame.maxY}, {x: @screen.width, y: frame.maxY}, selectedColor)
+		@setLine(@selectedLines.right,	{x: frame.maxX, y: 0}, {x: frame.maxX, y: @screen.height}, selectedColor)
+		@setLine(@selectedLines.left,	{x: frame.x, y: 0}, {x: frame.x, y: @screen.height}, selectedColor)
 
 
 	refresh: =>
 		@clearLines()
 		return unless (specPanel.hovered or specPanel.selected)
 
-		@hoveredLayer = specPanel.hovered ? @screen
-		@selectedLayer = specPanel.selected ? @screen
-
 		@showHovered()
 		@showSelected()
+
+		@showDistances()
 
 
 
@@ -1110,9 +1065,9 @@ class SpecPanel
 				"_group": 
 					visible: (l) -> true
 				"Name":
-				 	'name': {wide: true}
+				 	'name': {wide: true, defaultValue: ""}
 				 "Class":
-				 	"constructor.name": {type: 'text', wide: true} #l.constructor.name}
+				 	"constructor.name": {type: 'text', wide: true, defaultValue: ""} #l.constructor.name}
 			position:
 				"_group": 
 					visible: (l) -> true
@@ -1120,8 +1075,8 @@ class SpecPanel
 					"y": {detail: "x"},
 					"x": {detail: "y"}
 				"Screen":
-					"screenFrame.y": {detail: "x"},
-					"screenFrame.x": {detail: "y"}
+					"screenFrame.x": {detail: "x"},
+					"screenFrame.y": {detail: "y"}
 				"Size":
 					'width': {detail: "w"}
 					'height': {detail: "h"}
@@ -1152,7 +1107,7 @@ class SpecPanel
 					"fontStyle": {},
 					"fontWeight": {detail: "w"}
 				"Align":
-					"textAlign": {wide: true, default: "left"},
+					"textAlign": {wide: true, defaultValue: "left"},
 				"Spacing":
 					"letterSpacing": {detail: 'l'}
 					"wordSpacing": {detail: 'w'}
