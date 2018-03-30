@@ -10,6 +10,7 @@ Utils.domLoadScript "https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/d
 # --------------------
 # Global Variables
 
+svg = undefined
 context = undefined
 gotcha_container = undefined
 leftPanel = undefined
@@ -24,10 +25,11 @@ hoveredLayerTreeRow = undefined
 selectedLayerTreeRow = undefined
 layerTreeRows = []
 tintAlpha = .3
-hoveredColor = "rgba(72, 207, 255, 1.000)"
-selectedColor = "rgba(255, 1, 255, 1.000)"
-selectedTint = new Color(selectedColor).alpha(tintAlpha)
-hoveredTint = new Color(hoveredColor).alpha(tintAlpha)
+hoveredColor = new Color("#48cfff")
+selectedColor = new Color("#ff02ff")
+hoveredTint = hoveredColor.alpha(tintAlpha)
+selectedTint = selectedColor.alpha(tintAlpha)
+distanceBoxPadding = [2, 4]
 
 # --------------------
 # Helpers
@@ -62,19 +64,17 @@ createElement = (type, className, parent, assigns = {}) ->
 	_.assign(el, assigns)
 	return el
 
+createSVGElement = (type, parent, options = {}) ->
+	el = document.createElementNS("http://www.w3.org/2000/svg", type)
+	parent.appendChild(el)
+	Utils.setAttributes el, options
+
+	return el
+
 
 getScreenshot = ( options = {}) =>
 	unless options.layer then throw "getScreenshot requires a layer option. {layer: myLayer}"
 	return new Promise (resolve, reject) =>
-	
-		# getParentCx = (layer, x = 0, y = 0) ->
-
-		# 	if not layer.parent?
-		# 		return {x: x, y: y}
-			
-		# 	getParentCx(layer.parent, layer.x + x, layer.y + y)
-		
-		# layerCx = getParentCx(options.layer)
 
 		layer = options.layer
 
@@ -504,7 +504,11 @@ class LayerTreeRow
 		# definitions
 		defineToggleProperty(@, "hovered")
 		defineToggleProperty(@, "selected")
-		defineToggleProperty(@, "checked")
+		defineToggleProperty(@, "checked",
+			(=> @checkbox.classList.add "checked")
+			(=> @checkbox.classList.remove "checked")
+			)
+
 
 
 # LAYER SPEC GROUP
@@ -639,10 +643,8 @@ class Container
 				@default = @element.value is @defaultValue
 
 		defineToggleProperty(@, "default",
-			(=> 
-				@element.classList.add "default_value")
-			(=>
-				@element.classList.remove "default_value")
+			(=> @element.classList.add "default_value")
+			(=> @element.classList.remove "default_value")
 			)
 
 		# events
@@ -678,6 +680,146 @@ class Container
 # ----------------------------
 # SVG Overlay
 
+class DistanceLine
+	constructor: (options = {}) ->
+
+		_.defaults options,
+			parent: svg
+			containerHeight: 16
+
+		_.assign @, options
+
+		# SVG SHAPES
+
+		@line = createSVGElement 'line', @parent,
+			'stroke-width': '1px'
+			'stroke': hoveredColor
+
+		@caps = _.range(2).map (i) =>
+			return createSVGElement 'line', @parent,
+				'stroke-width': '1px'
+				'stroke': hoveredColor
+
+		@distanceContainer = createSVGElement 'g', @parent,
+			id: _.uniqueId()
+
+		@distanceBox = createSVGElement 'rect', @distanceContainer,
+			'height': @containerHeight
+			'width': '40px'
+			'border-radius': '4px'
+			'stroke-width': '1px'
+			'fill': '#000'
+			'rx': '4px'
+			'ry': '4px'
+			'fill': '#000'
+			'stroke': hoveredColor
+
+		@distance = createSVGElement 'text', @distanceContainer,
+			'font-family': 'Helvetica'
+			'font-size': '11px'
+			'font-weight': '400'
+			'letter-spacing': '1.2'
+			'text-align': 'center'
+			'text-anchor': 'middle'
+			'alignment-baseline': "central"
+			'fill': '#FFF'
+
+
+		# DEFINITIONS
+
+		Object.defineProperty @,
+			'points'
+			get: -> return @_points
+			set: (points = []) ->
+				return if @_points is points
+
+				@distance.textContent = num
+
+	# METHODS
+
+	setStyle: (options = {}) =>
+		Utils.setAttributes(@line, options)
+		
+		for cap in @caps
+			Utils.setAttributes(cap, options)
+
+
+	getCapCX: (point, offsets = []) ->
+		if 0 > point.x > Screen.width
+			fX = point.x
+		
+		if 0 > point.y > Screen.height
+			fY = point.y
+
+		return {
+			x1: fX ? (point.x + (offsets[0] ? 0))
+			y1: fY ? (point.y + (offsets[1] ? 0))
+			x2: fX ? (point.x + (offsets[2] ? 0))
+			y2: fY ? (point.y + (offsets[3] ? 0))
+		}
+
+
+	setDistanceContainer: (options = {}) =>
+		Utils.setAttributes @distanceContainer,
+			transform: "translate(#{options.x}, #{options.y})"
+			opacity: 1
+
+		textFrame = @distance.getBBox()
+
+		Utils.setAttributes @distanceBox,
+			x: -(textFrame.width / 2) - distanceBoxPadding[1]
+			y: -(textFrame.height / 2) - distanceBoxPadding[0]
+			width: textFrame.width + (distanceBoxPadding[1] * 2)
+			height: textFrame.height + (distanceBoxPadding[0] * 2)
+
+
+	setPoints: (pointA, pointB, color) =>
+
+		@setStyle
+			opacity: 1
+			stroke: color
+
+		Utils.setAttributes @line, 
+			x1: pointA.x
+			y1: pointA.y
+			x2: pointB.x
+			y2: pointB.y
+
+		distance = Utils.pointDistance(pointA, pointB)
+		maxX = Math.max(pointA.x, pointB.x)
+		maxY = Math.max(pointA.y, pointB.y)
+
+		@distance.textContent = distance
+		@distance.setAttribute('fill', color)
+		@distanceBox.setAttribute('stroke', color)
+
+		if pointA.x is pointB.x
+			Utils.setAttributes @caps[0], @getCapCX(pointA, [-4, 0, 4, 0])
+			Utils.setAttributes @caps[1], @getCapCX(pointB, [-4, 0, 4, 0])
+
+			@setDistanceContainer
+				x: maxX
+				y: maxY - (distance / 2)
+
+		else if pointA.y is pointB.y
+			Utils.setAttributes @caps[0], @getCapCX(pointA, [0, -4, 0, 4])
+			Utils.setAttributes @caps[1], @getCapCX(pointB, [0, -4, 0, 4])
+			
+			@setDistanceContainer
+				x: maxX - (distance / 2)
+				y: maxY
+
+
+
+	hide: =>
+		@setStyle
+			opacity: 0
+
+		Utils.setAttributes @distanceContainer,
+			opacity: 0
+
+
+
 class Overlay
 	constructor: (options = {}) ->
 
@@ -702,35 +844,17 @@ class Overlay
 		@lines = {}
 
 		['top', 'right', 'bottom', 'left'].forEach (dir) =>
-			line = document.createElementNS("http://www.w3.org/2000/svg", 'line')
-			@svg.appendChild(line)
-			Utils.setAttributes line, 
-				'stroke-width': '1px'
-				stroke: hoveredColor
-
-			caps = _.range(2).map (i) =>
-				cap = document.createElementNS("http://www.w3.org/2000/svg", 'line')
-				@svg.appendChild(cap)
-				Utils.setAttributes cap, 
-					'stroke-width': '1px'
-					stroke: hoveredColor
-
-				return cap
-
-			@lines[dir] =
-				line: line
-				caps: caps
+			@lines[dir] = new DistanceLine
+				parent: svg
 
 		# Selected Lines
 
 		@selectedLines = {}
 
 		['top', 'right', 'bottom', 'left'].forEach (dir) =>
-			line = document.createElementNS("http://www.w3.org/2000/svg", 'line')
-			@svg.appendChild(line)
-			Utils.setAttributes line, 
+			line = createSVGElement 'line', @svg,
 				'stroke-width': '1px'
-				stroke: selectedColor
+				'stroke': selectedColor
 				'stroke-dasharray': '4 4'
 
 			@selectedLines[dir] =
@@ -740,9 +864,7 @@ class Overlay
 
 		@rects = {}
 		['hovered', 'selected'].forEach (state, i) =>
-			rect = document.createElementNS("http://www.w3.org/2000/svg", 'rect')
-			@svg.appendChild(rect)
-			Utils.setAttributes rect, 
+			rect = createSVGElement 'rect', @svg,
 				height: 0
 				width: 0
 				x: 0
@@ -809,8 +931,8 @@ class Overlay
 
 
 	clearLines: =>
-		@styleLines
-			opacity: 0
+		for line in _.values(@lines)
+			line.hide()
 
 		for rect in _.values(@rects)
 			Utils.setAttributes rect,
@@ -822,10 +944,11 @@ class Overlay
 			Utils.setAttributes(line.line, {opacity: 0})
 
 
-	setLine: (line, pointA, pointB) =>
+	setLine: (line, pointA, pointB, color = hoveredColor) =>
 
 		@styleLine line,
 			opacity: 1
+			stroke: color
 
 		Utils.setAttributes line.line, 
 			x1: pointA.x
@@ -875,19 +998,29 @@ class Overlay
 		frame = @getFrame(layer)
 		selected = @getFrame(@selectedLayer)
 
-		if frame.y > selected.maxY
-			@setLine(@lines.top,	{x: frame.midX, y: selected.maxY + 4}, {x: frame.midX, y: frame.y - 4})
+		if frame.y > selected.maxY 
+			@lines.top.setPoints({x: frame.midX, y: frame.y - 4}, {x: frame.midX, y: selected.maxY + 4}, color)
 		if frame.maxY < selected.y
-			@setLine(@lines.bottom,	{x: frame.midX, y: frame.maxY + 4}, {x: frame.midX, y: selected.y - 4})
+			@lines.bottom.setPoints({x: frame.midX, y: selected.y - 4}, {x: frame.midX, y: frame.maxY + 4}, color)
 		if frame.x > selected.maxX
-			@setLine(@lines.right,	{x: selected.maxX + 4, y: frame.midY}, {x: frame.x - 4, y: frame.midY})
-		if frame.maxX < selected.x	
-			@setLine(@lines.left,	{x: frame.maxX + 4, y: frame.midY}, {x: selected.x - 4, y: frame.midY})
+			@lines.right.setPoints({x: frame.x - 4, y: frame.midY}, {x: selected.maxX + 4, y: frame.midY}, color)
+		if frame.maxX < selected.x
+			@lines.left.setPoints({x: frame.maxX + 4, y: frame.midY}, {x: selected.x - 4, y: frame.midY}, color)
+
+		if frame.y < selected.y and
+		frame.x < selected.y and
+		frame.maxX < selected.maxX and
+		frame.maxY < selected.maxY
+
+			@lines.top.setPoints({x: selected.midX, y: selected.y - 4}, {x: selected.midX, y: frame.maxY + 4}, color)
+			@lines.bottom.setPoints({x: selected.midX, y: frame.y - 4}, {x: selected.midX, y: selected.maxY + 4}, color)
+			@lines.right.setPoints({x: selected.x - 4, y: selected.midY}, {x: frame.maxX + 4, y: selected.midY}, color)
+			@lines.left.setPoints({x: selected.maxX + 4, y: selected.midY}, {x: frame.x - 4, y: selected.midY}, color)
 
 
 	showHovered: () =>
-		layer = specPanel.hovered
-		return if not layer
+		layer = @hoveredLayer
+		# return if not layer
 
 		Utils.setAttributes @rects.hovered,
 			width: layer.width
@@ -895,17 +1028,20 @@ class Overlay
 			x: layer.screenFrame.x
 			y: layer.screenFrame.y
 			opacity: 1
+			fill: if layer is @screen then 'none' else hoveredTint
+
+		# return if layer is @screen
 
 		@targetToLayer(layer)
 
 
 	showSelected: () =>
-		layer = specPanel.selected
-		if not layer
+		layer = @selectedLayer
+		if not specPanel.selected
 			@clearSelected()
 			return
 
-		selected = @getFrame(@selectedLayer)
+		selected = @getFrame(layer)
 
 		Utils.setAttributes @rects.selected,
 			width: selected.width
@@ -913,19 +1049,25 @@ class Overlay
 			x: selected.x
 			y: selected.y
 			opacity: 1
+			fill: if layer is @screen then 'none' else selectedTint
 
-		@setLine(@selectedLines.top,	{x: 0, y: selected.y}, {x: @screen.width, y: selected.y})
-		@setLine(@selectedLines.bottom,	{x: 0, y: selected.maxY}, {x: @screen.width, y: selected.maxY})
-		@setLine(@selectedLines.right,	{x: selected.maxX, y: 0}, {x: selected.maxX, y: @screen.height})
-		@setLine(@selectedLines.left,	{x: selected.x, y: 0}, {x: selected.x, y: @screen.height})
+		return if layer is @screen
+
+		@targetToLayer(layer)
+		
+		@setLine(@selectedLines.top,	{x: 0, y: selected.y}, {x: @screen.width, y: selected.y}, selectedColor)
+		@setLine(@selectedLines.bottom,	{x: 0, y: selected.maxY}, {x: @screen.width, y: selected.maxY}, selectedColor)
+		@setLine(@selectedLines.right,	{x: selected.maxX, y: 0}, {x: selected.maxX, y: @screen.height}, selectedColor)
+		@setLine(@selectedLines.left,	{x: selected.x, y: 0}, {x: selected.x, y: @screen.height}, selectedColor)
 
 
 	refresh: =>
 		@clearLines()
+		return unless (specPanel.hovered or specPanel.selected)
 
 		@hoveredLayer = specPanel.hovered ? @screen
 		@selectedLayer = specPanel.selected ? @screen
-		
+
 		@showHovered()
 		@showSelected()
 
