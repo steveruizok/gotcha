@@ -70,6 +70,7 @@ class window.App extends FlowComponent
 			contentWidth: Screen.width
 			showKeys: true
 			perspective: 1000
+			chromeOpacity: 1
 			screenshot: true
 
 		super options

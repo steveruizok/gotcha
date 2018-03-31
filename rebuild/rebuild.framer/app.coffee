@@ -27,21 +27,45 @@ view.onLoad ->
 				name: "Label"
 				text: "Label for these photos"
 				
-			pic = new Layer
+			pic0 = new Layer
 				parent: container
-				name: "Photo"
+				name: "Photo Left"
 				y: label.maxY
 				image: Utils.randomImage()
 				width: (@width - 16) / 2
 				
-			new Layer
+			pic1 = new Layer
 				parent: container
-				name: "Photo"
+				name: "Photo Right"
 				y: label.maxY
-				x: pic.maxX + 16
+				x: pic0.maxX + 16
 				image: Utils.randomImage()
 				width: (@width - 16) / 2
-
+				
+			animationThing = new Layer
+				name: "Animation Thing"
+				parent: container
+				size: 32
+				point: 40
+				
+			spin = new Animation animationThing,
+				rotation: 360
+				scale: 1.2
+				options:
+					curve: "linear"
+					looping: true
+					time: 10
+				
+			change = new Animation animationThing,
+				backgroundColor: blue
+				options:
+					looping: true
+					time: 10
+			
+			
+			spin.start()
+			change.start()
+	
 view.onPostload ->
 	Utils.delay 0, =>
 		@pad()
@@ -129,4 +153,3 @@ view.onPostload ->
 # 			type: screenshotTypeSelect.value
 
 app.showNext(view)
-	

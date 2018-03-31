@@ -9,14 +9,14 @@
   "deviceType" : "apple-iphone-8-space-gray",
   "sharedPrototype" : true,
   "propertyPanelToggleStates" : {
-
+    "Filters" : false
   },
   "projectId" : "CEAAE85E-6D08-4109-8FE4-9AD096F67261",
   "deviceOrientation" : 0,
   "selectedHand" : "",
   "showBezel" : true,
   "foldedCodeRanges" : [
-    "{53, 2217}"
+    "{53, 2656}"
   ],
   "deviceScale" : "fit"
 }

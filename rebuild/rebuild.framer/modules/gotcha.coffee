@@ -30,7 +30,7 @@ hoveredColor = new Color("#48cfff")
 selectedColor = new Color("#ff02ff")
 hoveredTint = hoveredColor.alpha(tintAlpha)
 selectedTint = selectedColor.alpha(tintAlpha)
-distanceBoxPadding = [2, 4]
+distanceBoxPadding = [1, 4]
 
 # --------------------
 # Helpers
@@ -135,6 +135,7 @@ rowBackground = "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAABCAIA
 
 
 Utils.insertCSS """
+
 
 #gotcha_container {
 	position: absolute;
@@ -259,6 +260,7 @@ Utils.insertCSS """
 }
 
 
+
 #layer_specs {
 	display: inline-block;
 	min-height: 100px;
@@ -281,6 +283,10 @@ Utils.insertCSS """
 	border-bottom: 1px solid #000;
 }
 
+.highlight {
+	color: #CCC;
+}
+
 .glyph {
 	position: absolute;
 	right: 16px;
@@ -289,6 +295,7 @@ Utils.insertCSS """
 .hidden {
 	display: none !important;
 }
+
 
 .layer_spec_row {
 	width: 100%;
@@ -323,6 +330,12 @@ Utils.insertCSS """
 
 .copy {
 	border-color: #7dddff !important;
+}
+
+.layer_animation_group {
+	border-bottom: 1px solid #000;
+	padding-bottom: 16px;
+	padding-top: 4px;
 }
 
 .spec_container:hover {
@@ -519,6 +532,7 @@ class LayerSpecGroup
 			accordion: false
 			title: undefined
 			closed: false
+			highlight: false
 
 		_.assign @, options
 
@@ -556,13 +570,13 @@ class LayerSpecGroup
 			(=> @element.classList.add "hidden")
 			)
 
-		defineToggleProperty(@, "special",
-			(=> @titleElement?.classList.add "special")
-			(=> @titleElement?.classList.remove "special")
+		defineToggleProperty(@, "highlight",
+			(=> @titleElement?.classList.add "highlight")
+			(=> @titleElement?.classList.remove "highlight")
 			)
 
 		@open = !@closed
-		@special = false
+		@highlight = false
 
 # LAYER SPEC ROW
 
@@ -574,6 +588,7 @@ class LayerSpecRow
 			type: "wide"
 			parent: layerSpecs
 			containers: []
+			group: {}
 
 		_.assign @, options
 
@@ -584,11 +599,18 @@ class LayerSpecRow
 			})
 
 		i = 0
-		_.forIn @containers, (value, key) =>
-			value.parent = @element
-			if i is 0 then value.left = true
-			specPanel.props[key] = new Container(value) # <-- the magic
+		@containers = _.map options.containers, (value, key) =>
+			_.assign value,
+				parent: @element
+				group: @group
+				left: i is 0
+
+			prop = new Container(value) # <-- the magic
+			# specPanel.props[key] = prop
+			@group.props[key] = prop
 			i++
+
+			return prop
 
 
 # CONTAINER
@@ -661,14 +683,88 @@ class Container
 			Utils.delay .15, =>
 				@element.classList.remove('copy')
 
+class AnimationSpecGroup
+	constructor: (options = {}) ->
 
+		_.defaults options,
+			parent: undefined
+			title: "Animation"
+			layer: undefined
+			properties: {}
+			stateA: {}
+			stateB: {}
+			options: {}
+			group: {}
 
+		_.assign @, options
+		
+		@element = createElement('div', 'layer_animation_group', @parent)
 
+		toFromRow = createElement('div', 'layer_spec_row', @element)
 
+		@fromLabel = createElement('span', 'spec_detail', toFromRow, {
+			textContent: 'From'
+			})
+		@fromLabel.style.left = '96px'
 
+		@toLabel = createElement('span', 'spec_detail', toFromRow, {
+			textContent: 'To'
+			})
+		@toLabel.style.left = '160px'
 
+		@specRows = {} 
 
+		_.forIn @properties, (value, key) =>
+			specRow = {}
+			specRow.element = createElement('div', 'layer_spec_row', @element)
+			specRow.label = createElement('span', 'layer_spec_label', specRow.element, {
+				textContent: _.startCase(key).split(' ')[0]
+				})
 
+			specRow.from = new Container
+				parent: specRow.element
+				left: true
+				type: if Color.isColor(@stateA[key]) then 'color' else 'text'
+			specRow.from.value = @stateA[key]
+
+			specRow.to = new Container
+				parent: specRow.element
+				type: if Color.isColor(@stateA[key]) then 'color' else 'text'
+			specRow.to.value = @stateB[key]
+
+			@specRows[key] = specRow
+
+		defaults =
+			# curve: 
+			looping: false
+			time: 1
+			repeat: 0
+			delay: 0
+			values: "0, 0, 0, 0"
+			colorModel: 'husl'
+			animate: true
+			debug: false
+			values: [0, 0, 1, 1]
+			precision: 0.001
+
+		_.forIn @options, (value, key) =>
+			return if value is defaults[key] or key is "curve"
+
+			row = {}
+			row.element = createElement('div', 'layer_spec_row', @element)
+			row.label = createElement('span', 'layer_spec_label', row.element, {
+				textContent: if key is "values" then "Cubic values" else _.startCase(key)
+				})
+
+			spec = new Container
+				parent: row.element
+				left: true
+				wide: key is 'values'
+
+			spec.value = if key is "values" then value.join(', ') else value
+
+	destroy: =>
+		@parent.removeChild(@element)
 
 
 
@@ -717,9 +813,9 @@ class DistanceLine
 
 		@distance = createSVGElement 'text', @distanceContainer,
 			'font-family': 'Helvetica'
-			'font-size': '11px'
+			'font-size': '9'
 			'font-weight': '400'
-			'letter-spacing': '1.2'
+			'letter-spacing': '1'
 			'text-align': 'center'
 			'text-anchor': 'middle'
 			'alignment-baseline': "central"
@@ -933,17 +1029,17 @@ class Overlay
 		Utils.setAttributes line,
 			opacity: 1
 			stroke: color
-			x1: pointA.x
+			x1: pointA.x, 
 			y1: pointA.y
-			x2: pointB.x
+			x2: pointB.x, 
 			y2: pointB.y
 
 	getFrame: (layer) ->
 		frame = layer.screenFrame
 		_.assign frame,
-			midX: frame.x + (frame.width / 2)
+			midX: frame.x + (frame.width / 2), 	
 			midY: frame.y + (frame.height / 2)
-			maxX: frame.x + frame.width
+			maxX: frame.x + frame.width,		
 			maxY: frame.y + frame.height
 
 		return frame
@@ -1011,10 +1107,10 @@ class Overlay
 			@clearSelected()
 			return
 		
-		@setLine(@selectedLines.top,	{x: 0, y: frame.y}, {x: @screen.width, y: frame.y}, selectedColor)
-		@setLine(@selectedLines.bottom,	{x: 0, y: frame.maxY}, {x: @screen.width, y: frame.maxY}, selectedColor)
-		@setLine(@selectedLines.right,	{x: frame.maxX, y: 0}, {x: frame.maxX, y: @screen.height}, selectedColor)
-		@setLine(@selectedLines.left,	{x: frame.x, y: 0}, {x: frame.x, y: @screen.height}, selectedColor)
+		@setLine(@selectedLines.top,	{x: 0, 			y: frame.y}, 	{x: @screen.width, 	y: frame.y}, 		selectedColor)
+		@setLine(@selectedLines.bottom,	{x: 0, 			y: frame.maxY}, {x: @screen.width, 	y: frame.maxY},		selectedColor)
+		@setLine(@selectedLines.right,	{x: frame.maxX, y: 0}, 			{x: frame.maxX, 	y: @screen.height}, selectedColor)
+		@setLine(@selectedLines.left,	{x: frame.x, 	y: 0}, 			{x: frame.x, 		y: @screen.height}, selectedColor)
 
 
 	refresh: =>
@@ -1055,12 +1151,13 @@ class SpecPanel
 			_hovered: undefined
 			pixelratio: Framer.Device._context.devicePixelRatio
 			props: {}
+			animations: []
 			timer: undefined
 
 		# ----------------
 		# Structure
 
-		structure =
+		@structure =
 			title:
 				"_group": 
 					visible: (l) -> true
@@ -1138,7 +1235,7 @@ class SpecPanel
 					"skewX": {detail: "x"},
 					"skewY": {detail: "y"},
 				"Perspective":
-					"Perspective": {}
+					"perspective": {}
 			filters:
 				"_group": 
 					visible: (l) -> true
@@ -1163,8 +1260,8 @@ class SpecPanel
 					"sepia": {},
 			animations:
 				"_group": 
-					visible: (l) -> true
 					accordion: true
+					visible: (l) -> l.animation().length > 0
 					title: "Animations"
 					closed: true
 			event_listeners:
@@ -1177,7 +1274,7 @@ class SpecPanel
 
 		# Make rows and containers
 
-		@specGroups = _.map structure, (specRows, groupName) =>
+		@specGroups = _.map @structure, (specRows, groupName) =>
 			specGroup = new LayerSpecGroup
 				name: groupName
 				accordion: specRows._group?.accordion
@@ -1186,18 +1283,20 @@ class SpecPanel
 
 			group = 
 				element: specGroup
-				options: undefined
+				options: specRows._group
+				highlight: false
+				rows: []
+				props: {}
 
-			_.forIn specRows, (value, key) =>
+			group.rows = _.map specRows, (value, key) =>
 				if key is "_group"
-					group.options = value
 					return
 
-				new LayerSpecRow
+				return new LayerSpecRow
 					label: if key[0] is "_" then " " else key
 					containers: value
 					parent: specGroup.element
-
+					group: group
 
 			return group
 
@@ -1205,22 +1304,14 @@ class SpecPanel
 		# Events
 
 		# set hovered on mouse move
-		Framer.Device.screen.on "mousemove", (event) =>
-			
-			point =
-				x: event.point.x / @pixelratio
-				y: event.point.y / @pixelratio
-			
-			hovered = currentLayers.filter (layer) ->
-				Utils.pointInFrame(point, layer.screenFrame)
-
-			@handleHovered(_.last(hovered))
+		Framer.Device.screen.on("mousemove", @_getHoveredLayer)
 
 
 		Framer.Device.screen.onTap (event) =>
 			return if Math.abs(event.offset.x) > 10 or Math.abs(event.offset.y) > 10
 
 			@handleSelected(@actuallyHovered)
+			@_getHoveredLayer(event)
 		
 		# clear hovered when background is entered
 		Framer.Device.background.on Events.MouseEnter, (event) =>
@@ -1269,16 +1360,65 @@ class SpecPanel
 
 		overlay.refresh()
 
-		_.forIn @props, (value, key) =>
-			@props[key].value = undefined
+		if not layer
+			@specGroups.forEach (group) =>
+				_.forIn group.props, (value, key) =>
+					group.props[key].value = undefined
 
-		return if not layer
+				group.element.visible = true
+				group.element.highlight = false
 
-		@specGroups.forEach (group) =>
+			return
+
+		# props
+
+		@specGroups[0...5].forEach (group) =>
+			highlight = false
+			_.forIn group.props, (value, key) =>
+				group.props[key].value = _.at(layer, key) ? undefined
+				unless group.props[key].default
+					highlight = true
+				
 			group.element.visible = group.options.visible(layer)
+			group.element.highlight = highlight
 
-		_.forIn @props, (value, key) =>
-			@props[key].value = _.at(layer, key)
+
+	_showAnimations: (layer) =>
+		if @selected and layer isnt @selected
+			@specGroups[6].visible = false
+			return
+
+		animGroup = @specGroups[6]
+		animations = layer.animations()
+
+		@animations.forEach (anim) =>
+			anim.destroy()
+
+		animGroup.element.visible = animations.length > 0
+		animGroup.element.highlight = animations.length > 0
+		
+		@animations = animations.map (anim, i) =>
+			new AnimationSpecGroup
+				parent: animGroup.element.element
+				title: "Animation #{i}"
+				properties: anim.properties
+				options: anim.options
+				stateA: anim._stateA
+				stateB: anim._stateB
+				layer: layer
+				group: {}
+
+
+	_getHoveredLayer: (event) =>
+		point =
+			x: event.point.x / @pixelratio
+			y: event.point.y / @pixelratio
+		
+		hovered = currentLayers.filter (layer) ->
+			Utils.pointInFrame(point, layer.screenFrame)
+
+		@handleHovered(_.last(hovered))
+
 
 	_showHoveredInLayerTree: =>
 		hoveredLayerTreeRow?.hovered = false
@@ -1288,6 +1428,7 @@ class SpecPanel
 			row.layer is @hovered
 
 		hoveredLayerTreeRow.hovered = true
+
 
 	_showSelectedInLayerTree: =>
 		selectedLayerTreeRow?.selected = false
@@ -1303,6 +1444,8 @@ class SpecPanel
 	# Public Methods
 
 	handleHovered: (layer) =>
+		return if layer is @actuallyHovered
+
 		@actuallyHovered = layer
 
 		if @actuallyHovered is @selected
@@ -1310,6 +1453,7 @@ class SpecPanel
 			return
 
 		@hovered = @actuallyHovered
+		@_showAnimations(layer)
 
 	handleSelected: (layer) =>
 		if layer is @selected
@@ -1317,6 +1461,7 @@ class SpecPanel
 			return
 
 		@selected = @hovered
+		@_showAnimations(layer)
 
 
 # --------------------
